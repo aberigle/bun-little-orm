@@ -45,4 +45,10 @@ describe('collection',() => {
     let result = col.find({ _id : 3})
     expect(result[0].date).toEqual(date)
   })
+
+  it('support updates', () => {
+    col.update(3, { test : 3})
+    let result = col.findById(3)
+    expect(result.test).toBe(3)
+  })
 })
