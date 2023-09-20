@@ -29,6 +29,11 @@ describe('collection',() => {
     expect(result.length).toBe(1)
   })
 
+  it('cant search by id', () => {
+    let result = col.findById(2)
+    expect(result.field).toBe("success")
+  })
+
   it('can search strings with wildcards', () => {
     let result = col.find({ field : "%ess"})
     expect(result.length).toBe(1)
