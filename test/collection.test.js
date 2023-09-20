@@ -65,5 +65,8 @@ describe('collection',() => {
     col.update(result._id, { success: false })
     result = col.findById(result)
     expect(result.success).toBe(false)
+
+    result = col.find({ success: false })
+    expect(result.length).toBe(1)
   })
 })
