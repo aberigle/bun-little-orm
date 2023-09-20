@@ -1,0 +1,5 @@
+{
+  "name": "bun-little-orm",
+  "module": "index.js",
+  "type": "module"
+}
