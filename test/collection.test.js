@@ -56,4 +56,14 @@ describe('collection',() => {
     let result = col.insert({ text : "id test"})
     expect(result._id).toBe(4)
   })
+
+  it('supports booleans', () => {
+    let result = col.insert({ success : true})
+    result = col.findById(result)
+    expect(result.success).toBe(true)
+
+    col.update(result._id, { success: false })
+    result = col.findById(result)
+    expect(result.success).toBe(false)
+  })
 })
