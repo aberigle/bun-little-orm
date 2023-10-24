@@ -1,5 +1,6 @@
 {
   "name": "bun-little-orm",
+  "author": "@aberigle",
   "module": "index.js",
   "type": "module"
 }
