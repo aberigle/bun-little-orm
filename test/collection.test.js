@@ -5,7 +5,7 @@ import Collection from '../lib/collection';
 const db = new Database()
 const col = new Collection(db, "test")
 
-describe('collection',() => {
+describe('collection', () => {
   it('inserts in a new collection', () => {
     col.insert({ test: 1 })
     let result = db.query(`SELECT * FROM test`).get()
@@ -42,7 +42,7 @@ describe('collection',() => {
   it('supports dates', () => {
     let date = new Date()
     col.insert({ date })
-    let result = col.find({ _id : 3})
+    let result = col.find({ id : 3})
     expect(result[0].date).toEqual(date)
   })
 
@@ -54,7 +54,7 @@ describe('collection',() => {
 
   it('returns id on insert', () => {
     let result = col.insert({ text : "id test"})
-    expect(result._id).toBe(4)
+    expect(result.id).toBe(4)
   })
 
   it('supports booleans', () => {
@@ -62,7 +62,7 @@ describe('collection',() => {
     result = col.findById(result)
     expect(result.success).toBe(true)
 
-    col.update(result._id, { success: false })
+    col.update(result.id, { success: false })
     result = col.findById(result)
     expect(result.success).toBe(false)
 
