@@ -13,9 +13,9 @@ describe('collection', () => {
   })
 
   it('alters table with new fields', () => {
-    col.insert({ field: "success" })
+    col.insert({ field: "success", test : 2 })
     let result = db.query(`SELECT * FROM test LIMIT 1 OFFSET 1`).get()
-    expect(result.test).toBe(null)
+    expect(result.test).toBe(2)
     expect(result.field).toBe("success")
   })
 
