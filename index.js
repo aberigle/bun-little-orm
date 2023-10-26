@@ -1,1 +1,2 @@
-export { Collection } from './lib/collection.js'
+export { default as Collection } from './lib/collection.js'
+
