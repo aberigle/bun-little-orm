@@ -1,8 +1,17 @@
-const TYPE_MAP = {
-  "number"  : "REAL",
-  "string"  : "TEXT",
-  "boolean" : "INTEGER",
-  "date"    : "INTEGER"
+enum TypeMap {
+  "number"  = "REAL",
+  "string"  = "TEXT",
+  "boolean" = "INTEGER",
+  "date"    = "INTEGER"
+}
+
+export type PragmaResult = {
+  pk         : boolean
+  // cid        : number,
+  name       : string,
+  type       : string
+  // notnull    : boolean,
+  // dflt_value : number | string | null
 }
 
 const SPECIAL_TYPES = [Date]
@@ -14,10 +23,10 @@ export default class Field {
    *
    * @param {Array} list of fields in the table
    */
-  static load(list=[]) {
+  static load(list: Array<PragmaResult>) : Array<Field> {
     return list.map(item => {
       let field = parseField(item)
-      return new Field(field.name, field.type, item)
+      return new Field(field.name, field.type)
     })
   }
 
@@ -28,39 +37,38 @@ export default class Field {
    * @param {String} name
    * @param {Object} value
    */
-  static deduce(name="", value) {
-    if (value === null) return null
+  static deduce(name: string = "", value : any) : Field {
+    let type : string = typeof value
 
-    let type = typeof value
-
-    if (!TYPE_MAP[type]) type = findSpecialType(value)
+    if (!TypeMap[type]) type = findSpecialType(value)
 
     return new Field(name, type)
   }
 
-  constructor(name, type, definition) {
-    this.name = name
-    this.type = type
-    this.def  = definition
-  }
+  constructor(
+    public name : string,
+    public type : string,
+    // private definition : string
+  ) { }
 
   /**
    * Substitutes the db value for a parsed one
    *
-   * @param {Object} object - from the db
+   * @param {Object} result - from the db
    *
    * @returns {Object} the transformed object
    */
-  transform(object) {
+  transform(object: any): any {
+    let result = Object.assign({},object)
     let field = this.dbName()
-    let value = object[field]
+    let value = result[field]
 
-    if (this.name !== field) delete object[field]
-    if (value === null) return object
+    if (this.name !== field) delete result[field]
+    if (value === null) return result
 
-    object[this.name] = this.parse(value)
+    result[this.name] = this.parse(value)
 
-    return object
+    return result
   }
 
   /**
@@ -68,7 +76,7 @@ export default class Field {
    *
    * @param {Object} value - Any value
    */
-  parse(value) {
+  parse(value: any): any {
     switch(this.type) {
       case 'date'    : return new Date(value)
       case 'boolean' : return value === 1
@@ -79,12 +87,12 @@ export default class Field {
   /**
    * Cast a javascript value to a sqlite ready one based on the type
    *
-   * @param {Objeect} value - Any value
+   * @param {Object} value - Any value
    */
-  cast(value) {
+  cast(value: any): any {
     switch(this.type) {
       case 'date'   : return value.getTime()
-      case 'string' : return `'${value}'`
+      case 'string' : return value
       case 'boolean': return Number(value)
       default : return value
     }
@@ -96,7 +104,7 @@ export default class Field {
    *
    * @returns {String} The field name
    */
-  dbName() {
+  dbName(): string {
     switch(this.type) {
       case 'date'    : return this.name + "::date"
       case 'boolean' : return this.name + "::boolean"
@@ -109,27 +117,29 @@ export default class Field {
    *
    * @returns {String} the field definition
    */
-  definition() {
-    return `'${this.dbName()}' ${TYPE_MAP[this.type]}`
+  definition(): string {
+    return `'${this.dbName()}' ${TypeMap[this.type]}`
   }
 
 }
 
 // private
 
-let parseField = field => {
+let parseField = (field: PragmaResult) => {
   let [name, type] = field.name.split("::")
 
   // an integer and primary key
   if (field.pk && field.type === "INTEGER") type = "number"
 
-  if (!type) type = Object.keys(TYPE_MAP).find(type => TYPE_MAP[type] == field.type)
+  if (!type) type = Object.keys(TypeMap).find(type => TypeMap[type] == field.type)
 
   return { name, type }
 }
 
-let findSpecialType = value => {
-  let type = SPECIAL_TYPES.find(type => value instanceof type)
+let findSpecialType = (value: any): string => {
+  const type = SPECIAL_TYPES.find(type => value instanceof type)
+
   if (!type) throw new Error(`Unsupported type for ${value}!`)
+
   return type.name.toLowerCase()
 }
