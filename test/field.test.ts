@@ -1,16 +1,17 @@
 import { describe, it, expect } from 'bun:test'
 import Field from '../lib/field'
+import { PragmaResult } from '../lib/field'
 
 // test sqlite field defitions
-let number  = { name : "number",            type : "REAL" }
-let string  = { name : "string",            type : "TEXT" }
-let boolean = { name : "boolean::boolean",  type : "INTEGER" }
-let date    = { name : "date::date",        type : "INTEGER" }
+const number  : PragmaResult = { name : "number",           type : "REAL",    pk : false }
+const string  : PragmaResult = { name : "string",           type : "TEXT",    pk : false }
+const boolean : PragmaResult = { name : "boolean::boolean", type : "INTEGER", pk : false }
+const date    : PragmaResult = { name : "date::date",       type : "INTEGER", pk : false }
 
 describe('field', () => {
   describe("deduces", () => {
     it("numbers", () => {
-      let field = Field.deduce("test", 1)
+      const field : Field = Field.deduce("test", 1)
       expect(field.type).toBe("number")
       expect(field.dbName()).toBe("test")
       expect(field.definition()).toBe("'test' REAL")
@@ -73,7 +74,7 @@ describe('field', () => {
 
     it("strings", () => {
       let field = Field.load([string])[0]
-      expect(field.cast("test")).toBe("'test'")
+      expect(field.cast("test")).toBe("test")
     })
 
     it("booleans", () => {
