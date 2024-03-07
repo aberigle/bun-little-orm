@@ -29,7 +29,7 @@ Luego es tan fácil como hacer
 
 ````js
 let result = await col.insert({ hello : "world"})
-console.log(result._id) // el id de la instancia en la BD
+console.log(result.id) // el id de la instancia en la BD
 ````
 
 Se pueden ir añadiendo campos adicionales, y se encargará de actualizar la tabla en consecuencia.
@@ -85,7 +85,7 @@ Then it's as easy as doing:
 
 ````js
 let result = await col.insert({ hello : "world" });
-console.log(result._id); // the id of the instance in the database
+console.log(result.id); // the id of the instance in the database
 ````
 
 You can add additional fields, and it will take care of updating the table accordingly.
