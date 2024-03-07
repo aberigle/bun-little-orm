@@ -2,5 +2,14 @@
   "name": "bun-little-orm",
   "author": "@aberigle",
   "module": "index.js",
-  "type": "module"
+  "type": "module",
+  "trustedDependencies": ["sqlite3"],
+  "dependencies": {
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.5.3",
+    "@types/bun": "^1.0.8",
+    "bun-types": "^1.0.10"
+  }
 }

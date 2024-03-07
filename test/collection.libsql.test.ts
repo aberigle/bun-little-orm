@@ -1,26 +1,37 @@
-import { describe, it, expect } from 'bun:test'
-// import { Database } from 'bun:sqlite';
-// import * as SQL from 'sqlite3'
+import { describe, it, expect, afterAll } from 'bun:test'
 import Collection from '../lib/collection';
-import Database from 'bun:sqlite';
 
-// const Database = SQL.verbose().Database
+import { unlinkSync } from 'node:fs'
 
-const db  = new Database()
+import { createClient } from "@libsql/client";
+
+let file = `test/${Date.now()}.sqlite`
+
+const db  = createClient({
+  url: `file:` + file
+})
 const col = new Collection(db, "test")
 
+let execute = async (query: string) => {
+  let result = await db.execute(query)
+  return result.rows
+}
+
 describe('collection', () => {
+
+  afterAll(() => unlinkSync(file))
+
   it('inserts in a new collection', async () => {
     await col.insert({ test: 1 })
-    let result: any = db.query(`SELECT * FROM test`).get()
-    expect(result.test).toBe(1)
+    let result: any = await execute(`SELECT * FROM test`)
+    expect(result[0].test).toBe(1)
   })
 
   it('alters table with new fields', async () => {
     await col.insert({ field: "success", test : 2 })
-    let result: any = db.query(`SELECT * FROM test LIMIT 1 OFFSET 1`).get()
-    expect(result.test).toBe(2)
-    expect(result.field).toBe("success")
+    let result: any = await execute(`SELECT * FROM test LIMIT 1 OFFSET 1`)
+    expect(result[0].test).toBe(2)
+    expect(result[0].field).toBe("success")
   })
 
   it('retrieves the models', async () => {
@@ -74,3 +85,4 @@ describe('collection', () => {
     expect(result.length).toBe(1)
   })
 })
+
