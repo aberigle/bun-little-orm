@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test'
-import Field from '../lib/field'
-import { PragmaResult } from '../lib/field'
+import Field from '../src/field'
+import { PragmaResult } from '../src/field'
 
 // test sqlite field defitions
 const number  : PragmaResult = { name : "number",           type : "REAL",    pk : false }

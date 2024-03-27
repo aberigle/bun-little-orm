@@ -1,5 +1,5 @@
 import { describe, it, expect, afterAll } from 'bun:test'
-import Collection from '../lib/collection';
+import Collection from '../src/collection';
 
 import { unlinkSync } from 'node:fs'
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import Collection from '../lib/collection';
+import Collection from '../src/collection';
 import Database from 'bun:sqlite';
 
 const db  = new Database()
