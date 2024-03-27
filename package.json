@@ -1,15 +1,16 @@
 {
   "name": "bun-little-orm",
   "author": "@aberigle",
-  "module": "index.js",
-  "type": "module",
-  "trustedDependencies": ["sqlite3"],
-  "dependencies": {
-    "typescript": "^5.2.2"
+  "main": "dist/index.js",
+  "scripts": {
+    "build" : "rm -rf dist && tsc",
+    "test"  : "bun test"
   },
+  "types": "dist/index.d.ts",
+  "files": ["/dist"],
+  "dependencies": {},
   "devDependencies": {
     "@libsql/client": "^0.5.3",
-    "@types/bun": "^1.0.8",
-    "bun-types": "^1.0.10"
+    "typescript": "^5.2.2"
   }
 }
