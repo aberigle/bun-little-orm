@@ -1,15 +1,10 @@
-import { describe, it, expect, afterAll } from 'bun:test'
+import { describe, expect, it } from 'bun:test';
 import Collection from '../src/collection';
-
-import { unlinkSync } from 'node:fs'
 
 import { createClient } from "@libsql/client";
 
-let file = `test/${Date.now()}.sqlite`
+const db  = createClient({ url: `:memory:` })
 
-const db  = createClient({
-  url: `file:` + file
-})
 const col = new Collection(db, "test")
 
 let execute = async (query: string) => {
@@ -18,8 +13,6 @@ let execute = async (query: string) => {
 }
 
 describe('collection', () => {
-
-  afterAll(() => unlinkSync(file))
 
   it('inserts in a new collection', async () => {
     await col.insert({ test: 1 })
