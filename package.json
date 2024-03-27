@@ -3,14 +3,15 @@
   "author": "@aberigle",
   "main": "dist/index.js",
   "scripts": {
-    "build" : "rm -rf dist && tsc",
-    "test"  : "bun test"
+    "build": "rm -rf dist && tsc",
+    "test": "bun test"
   },
   "types": "dist/index.d.ts",
   "files": ["/dist"],
   "dependencies": {},
   "devDependencies": {
     "@libsql/client": "^0.5.3",
+    "@types/bun": "^1.0.11",
     "typescript": "^5.2.2"
   }
 }
