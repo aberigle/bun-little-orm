@@ -52,9 +52,9 @@ describe('collection', () => {
     expect(result.test).toBe(3)
   })
 
-  it('returns id on insert', async () => {
-    let result = await col.insert({ text : "id test"})
-    expect(result.id).toBe(4)
+  it('returns object on insert', async () => {
+    let result = await col.insert({ text : "insert test"})
+    expect(result.text).toBe("insert test")
   })
 
   it('supports booleans', async () => {

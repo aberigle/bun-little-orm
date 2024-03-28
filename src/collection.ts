@@ -29,6 +29,10 @@ export default class Collection {
     return result.rows
   }
 
+  transform(item, fields) {
+    return fields.reduce((item, field) => field.transform(item), item)
+  }
+
   async insert(model: any) {
     let clone = Object.assign({}, model)
     let fields = deduceFields(clone)
@@ -41,10 +45,10 @@ export default class Collection {
     let query = `INSERT INTO ${this.table} `
     query +=  `(${names.join(",")})`
     query += `VALUES (${values.map(_ => '?').join(",")}) `
-    query += `RETURNING ${ID_FIELD}`
+    query += `RETURNING *`
 
     let result = await this.execute(query, values)
-    return result[0]
+    return this.transform(result[0], fields)
   }
 
   async findById(query : any) {
@@ -83,7 +87,7 @@ export default class Collection {
     }
 
     let result = await this.execute(query, values)
-    return result.map(item => fields.reduce((item, field) => field.transform(item), item))
+    return result.map(item => this.transform(item, fields))
   }
 
   async update(id : any, model={}) {
