@@ -38,6 +38,19 @@ Se pueden ir añadiendo campos adicionales, y se encargará de actualizar la tab
 let result = await col.insert({ hello : "field", count : 1})
 ````
 
+Los tipos soportados de momento son los siguientes.
+
+````ts
+enum TypeMap {
+  "number"  = "REAL",
+  "string"  = "TEXT",
+  "boolean" = "INTEGER",
+  "date"    = "INTEGER",
+  "object"  = "TEXT",
+  "array"   = "TEXT"
+}
+````
+
 Soporta búsquedas sencillas y con wilcards, también búsquedas por id.
 ````js
 let result1 = await col.find({ count : 1 })
@@ -92,6 +105,19 @@ You can add additional fields, and it will take care of updating the table accor
 
 ````js
 let result = await col.insert({ hello : "field", count : 1 });
+````
+
+The supported types are
+
+````ts
+enum TypeMap {
+  "number"  = "REAL",
+  "string"  = "TEXT",
+  "boolean" = "INTEGER",
+  "date"    = "INTEGER",
+  "object"  = "TEXT",
+  "array"   = "TEXT"
+}
 ````
 
 It supports simple and wildcard searches, as well as searches by id.
