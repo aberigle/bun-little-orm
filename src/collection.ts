@@ -92,11 +92,14 @@ export default class Collection {
 
     await this.ensure(fields)
 
+    let names  = fields.map(field => `'${field.dbName()}'`)
+    let values = fields.map(field => field.cast(clone[field.name]))
+
     let query = `UPDATE ${this.table} SET `
-    query +=  fields.map(field => `'${field.dbName()}' = ${field.cast(clone[field.name])}`).join(",")
+    query +=  names.map(field => `${field} = ?`).join(",")
     query += ` WHERE ${ID_FIELD} = ${id}`
 
-    return this.execute(query)
+    return this.execute(query, values)
   }
 
   async ensure(fields: Array<Field> = []): Promise<Array<Field>> {
