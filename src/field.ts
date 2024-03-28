@@ -7,7 +7,7 @@ enum TypeMap {
   "array"   = "TEXT"
 }
 
-const COMPLES_TYPES = [
+const COMPLEX_TYPES = [
   Date,
   Object,
   Array
@@ -151,7 +151,7 @@ let parseField = (field: PragmaResult) => {
 }
 
 let findSpecialType = (value: any): string => {
-  const type = COMPLES_TYPES.find(type => value.constructor.name === type.name)
+  const type = COMPLEX_TYPES.find(type => value.constructor.name === type.name)
 
   if (!type) throw new Error(`Unsupported type for ${value}!`)
 
