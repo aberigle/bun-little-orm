@@ -26,7 +26,6 @@ describe('collection', () => {
     expect(result[0].test).toBe(2)
     expect(result[0].field).toBe("success")
   })
-
   it('retrieves the models', async () => {
     let result = await col.find()
     expect(result.length).toBe(2)
@@ -49,14 +48,33 @@ describe('collection', () => {
 
   it('supports dates', async () => {
     let date = new Date()
-    await col.insert({ date })
-    let result = await col.find({ id : 3})
+    let inserted = await col.insert({ date })
+    let result = await col.find({ id : inserted.id})
     expect(result[0].date).toEqual(date)
+  })
+
+  it('supports objects', async () => {
+    let object = { hola: "mundo" }
+    let inserted = await col.insert({ object })
+    expect(inserted.object).toEqual(object)
+
+    let found = await col.findById(inserted.id)
+    expect(found.object).toEqual(object)
+  })
+
+  it('supports arrays', async () => {
+    let list = ["list", "two", "three"]
+    let inserted = await col.insert({ list })
+
+    expect(inserted.list).toEqual(list)
+
+    let found = await col.findById(inserted.id)
+    expect(found.list).toEqual(list)
   })
 
   it('supports updates', async () => {
     await col.update(3, { test : 3})
-    let result = await col.findById(3)
+    let result   = await col.findById(3)
     expect(result.test).toBe(3)
   })
 
@@ -78,4 +96,3 @@ describe('collection', () => {
     expect(result.length).toBe(1)
   })
 })
-

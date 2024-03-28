@@ -3,21 +3,23 @@ import Field from '../src/field'
 import { PragmaResult } from '../src/field'
 
 // test sqlite field defitions
-const number  : PragmaResult = { name : "number",           type : "REAL",    pk : false }
-const string  : PragmaResult = { name : "string",           type : "TEXT",    pk : false }
-const boolean : PragmaResult = { name : "boolean::boolean", type : "INTEGER", pk : false }
-const date    : PragmaResult = { name : "date::date",       type : "INTEGER", pk : false }
+const number  : PragmaResult = { name: "number",           type: "REAL",    pk: false }
+const string  : PragmaResult = { name: "string",           type: "TEXT",    pk: false }
+const boolean : PragmaResult = { name: "boolean::boolean", type: "INTEGER", pk: false }
+const date    : PragmaResult = { name: "date::date",       type: "INTEGER", pk: false }
+const object  : PragmaResult = { name: "object::object",   type: "TEXT",    pk: false }
+const array   : PragmaResult = { name: "array::array",     type: "TEXT",    pk: false }
 
 describe('field', () => {
   describe("deduces", () => {
     it("numbers", () => {
-      const field : Field = Field.deduce("test", 1)
+      const field: Field = Field.deduce("test", 1)
       expect(field.type).toBe("number")
       expect(field.dbName()).toBe("test")
       expect(field.definition()).toBe("'test' REAL")
     })
 
-    it("strings",  () => {
+    it("strings", () => {
       let field = Field.deduce("test", "text")
       expect(field.name).toBe("test")
       expect(field.type).toBe("string")
@@ -37,6 +39,20 @@ describe('field', () => {
       expect(field.type).toBe("boolean")
       expect(field.dbName()).toBe("test::boolean")
       expect(field.definition()).toBe("'test::boolean' INTEGER")
+    })
+
+    it("objects", () => {
+      let field = Field.deduce("test", { hola: "mundo" })
+      expect(field.type).toBe("object")
+      expect(field.dbName()).toBe("test::object")
+      expect(field.definition()).toBe("'test::object' TEXT")
+    })
+
+    it("arrays", () => {
+      let field = Field.deduce("test", ["test"])
+      expect(field.type).toBe("array")
+      expect(field.dbName()).toBe("test::array")
+      expect(field.definition()).toBe("'test::array' TEXT")
     })
   })
 
@@ -64,6 +80,18 @@ describe('field', () => {
       expect(field.name).toBe("date")
       expect(field.type).toBe("date")
     })
+
+    it("objects", () => {
+      let field = Field.load([object])[0]
+      expect(field.name).toBe("object")
+      expect(field.type).toBe("object")
+    })
+
+    it("arrays", () => {
+      let field = Field.load([array])[0]
+      expect(field.name).toBe("array")
+      expect(field.type).toBe("array")
+    })
   })
 
   describe("casts to db", () => {
@@ -86,6 +114,18 @@ describe('field', () => {
       let field = Field.load([date])[0]
       let value = new Date("2023-01-01")
       expect(field.cast(value)).toBe(1672531200000)
+    })
+
+    it("objects", () => {
+      let field = Field.load([object])[0]
+      let value = { hola: "mundo" }
+      expect(field.cast(value)).toBe(JSON.stringify(value))
+    })
+
+    it("arrays", () => {
+      let field = Field.load([array])[0]
+      let value = ["list"]
+      expect(field.cast(value)).toBe(JSON.stringify(value))
     })
   })
 
@@ -110,7 +150,18 @@ describe('field', () => {
       let value = new Date("2023-01-01")
       expect(field.parse(1672531200000)).toEqual(value)
     })
-  })
 
+    it("objects", () => {
+      let field = Field.load([object])[0]
+      let value = { hola: "mundo" }
+      expect(field.parse(JSON.stringify(value))).toEqual(value)
+    })
+
+    it("arrays", () => {
+      let field = Field.load([array])[0]
+      let value = ["list"]
+      expect(field.parse(JSON.stringify(value))).toEqual(value)
+    })
+  })
 
 })

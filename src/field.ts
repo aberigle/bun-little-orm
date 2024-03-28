@@ -2,8 +2,16 @@ enum TypeMap {
   "number"  = "REAL",
   "string"  = "TEXT",
   "boolean" = "INTEGER",
-  "date"    = "INTEGER"
+  "date"    = "INTEGER",
+  "object"  = "TEXT",
+  "array"   = "TEXT"
 }
+
+const COMPLES_TYPES = [
+  Date,
+  Object,
+  Array
+]
 
 export type PragmaResult = {
   pk         : boolean
@@ -14,7 +22,6 @@ export type PragmaResult = {
   // dflt_value : number | string | null
 }
 
-const SPECIAL_TYPES = [Date]
 
 export default class Field {
 
@@ -40,7 +47,7 @@ export default class Field {
   static deduce(name: string = "", value : any) : Field {
     let type : string = typeof value
 
-    if (!TypeMap[type]) type = findSpecialType(value)
+    if (!TypeMap[type] || type === 'object') type = findSpecialType(value)
 
     return new Field(name, type)
   }
@@ -80,6 +87,8 @@ export default class Field {
     switch(this.type) {
       case 'date'    : return new Date(value)
       case 'boolean' : return value === 1
+      case 'array'   :
+      case 'object'  : return JSON.parse(value)
       default        : return value
     }
   }
@@ -94,6 +103,8 @@ export default class Field {
       case 'date'   : return value.getTime()
       case 'string' : return value
       case 'boolean': return Number(value)
+      case 'array'  :
+      case 'object' : return JSON.stringify(value)
       default : return value
     }
 
@@ -105,11 +116,14 @@ export default class Field {
    * @returns {String} The field name
    */
   dbName(): string {
-    switch(this.type) {
-      case 'date'    : return this.name + "::date"
-      case 'boolean' : return this.name + "::boolean"
-      default        : return this.name
-    }
+    if ([
+      "date",
+      "boolean",
+      "object",
+      "array"
+    ].includes(this.type)) return this.name + "::" + this.type
+
+    return this.name
   }
 
   /**
@@ -137,7 +151,7 @@ let parseField = (field: PragmaResult) => {
 }
 
 let findSpecialType = (value: any): string => {
-  const type = SPECIAL_TYPES.find(type => value instanceof type)
+  const type = COMPLES_TYPES.find(type => value.constructor.name === type.name)
 
   if (!type) throw new Error(`Unsupported type for ${value}!`)
 
