@@ -29,8 +29,8 @@ export default class Collection {
     return result.rows
   }
 
-  transform(item, fields) {
-    return fields.reduce((item, field) => field.transform(item), item)
+  transform(item) {
+    return this.fields.reduce((item, field) => field.transform(item), item)
   }
 
   async insert(model: any) {
@@ -48,7 +48,7 @@ export default class Collection {
     query += `RETURNING *`
 
     let result = await this.execute(query, values)
-    return this.transform(result[0], fields)
+    return this.transform(result[0])
   }
 
   async findById(query : any) {
@@ -87,7 +87,7 @@ export default class Collection {
     }
 
     let result = await this.execute(query, values)
-    return result.map(item => this.transform(item, fields))
+    return result.map(item => this.transform(item))
   }
 
   async update(id : any, model={}) {
