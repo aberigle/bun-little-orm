@@ -12,7 +12,10 @@ export default class Collection {
   table  : string
   fields : Record<string, Field>
 
-  constructor(db: any, name: string) {
+  constructor(
+    db: any,
+    name: string
+  ) {
     this.db     = db
     this.table  = name
     this.fields = {}
@@ -134,9 +137,12 @@ export default class Collection {
 
     let query = `UPDATE ${this.table} SET `
     query +=  names.map(field => `${field} = ?`).join(",")
-    query += ` WHERE ${ID_FIELD} = ${id}`
+    query += ` WHERE ${ID_FIELD} = ${id} `
+    query += `RETURNING *`
 
-    return this.execute(query, values)
+    const result = await this.execute(query, values)
+
+    return this.transform(result[0])
   }
 
   async ensure(
