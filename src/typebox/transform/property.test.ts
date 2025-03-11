@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'bun:test'
+import { Type } from '@sinclair/typebox'
+import { parseProperty } from './property'
+
+
+describe('typebox properties',() => {
+  describe("parses", () => {
+    it("Type.Number", () => {
+      const field = parseProperty(Type.Number())
+      expect(field.type).toBe("number")
+    })
+
+    it("Type.String", () => {
+      const field = parseProperty(Type.String())
+      expect(field.type).toBe("string")
+    })
+
+    it("Type.Date", () => {
+      const field = parseProperty(Type.Date())
+      expect(field.type).toBe("date")
+    })
+
+    it("Type.Boolean", () => {
+      const field = parseProperty(Type.Boolean())
+      expect(field.type).toBe("boolean")
+    })
+
+    it("Type.Object", () => {
+      const field = parseProperty(Type.Object({}))
+      expect(field.type).toBe("object")
+    })
+
+    it("Type.Any", () => {
+      const field = parseProperty(Type.Any())
+      expect(field.type).toBe("object")
+    })
+
+    it("Type.Array", () => {
+      const field = parseProperty(Type.Array(Type.Object({})))
+      expect(field.type).toBe("array")
+    })
+  })
+
+})

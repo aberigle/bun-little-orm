@@ -1,2 +1,3 @@
-export { default as Collection } from "./collection"
-export { default as Field } from './field'
+export { Collection, Field } from "./core"
+
+export { fromTypebox } from './typebox'
