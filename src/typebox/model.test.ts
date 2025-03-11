@@ -47,6 +47,7 @@ describe('typebox', () => {
       const schema = Type.Object({ test: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
+    // @ts-ignore
       expect(async () => await model.insert({ test: "hola" })).toThrowError("Validation error")
     })
 

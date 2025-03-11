@@ -1,10 +1,12 @@
 {
   "name": "bun-little-orm",
+  "version": "0.0.1",
   "author": "@aberigle",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "test": "bun test"
+    "build:types": "tsc --project tsconfig.dts.json",
+    "build": "bun test && bun run build:types && bun build.ts",
+    "publishLocal": "bun run build && yalc publish --push"
   },
   "types": "dist/index.d.ts",
   "files": ["/dist"],
