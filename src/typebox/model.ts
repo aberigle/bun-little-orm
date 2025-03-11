@@ -28,6 +28,8 @@ export class Model<T extends TSchema> extends Collection {
     model: Static<T>,
     partial = false
   ) {
+    if (Value.Check(this.schema, model)) return true
+
     const errors = [
       ...Value.Errors(
         partial

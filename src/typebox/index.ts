@@ -1,6 +1,7 @@
 import { TSchema } from "@sinclair/typebox"
 import { Model } from "./model"
 
+export { Model }
 export function fromTypebox<T extends TSchema>(
   db: any,
   object: T,
