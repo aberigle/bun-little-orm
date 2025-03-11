@@ -1,18 +1,40 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext","DOM"],
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleDetection": "force",
-    "allowJs": true,
-
+    "target": "ES2021",
+    "lib": [
+      "esnext"
+    ],
+    "removeComments": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "newLine": "LF",
     "declaration": true,
-    "outDir": "./dist"
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowJs": false,
+    "outDir": "build",
+    "inlineSourceMap": true,
+    "importHelpers": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "~/*": [
+        "./*"
+      ]
+    }
   },
   "include": [
-    "src"
+    "src/**/*.ts"
   ],
-  "lib" : [
-    "ESNext"
+  "exclude": [
+    "node_modules",
+    "./node_modules",
+    "./node_modules/*",
+    "./node_modules/@types/node/index.d.ts",
   ]
 }
