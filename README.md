@@ -63,9 +63,43 @@ También se pueden hacer actualizaciones por id
 await col.update(1, { hello : "updates" })
 ````
 
+## Soporte para TypeBox
+Con TypeBox, puedes definir esquemas de validación para tus modelos y aprovechar la inferencia de tipos en TypeScript.
+
+### Definir un esquema con TypeBox
+```typescript
+import { Type, Static } from '@sinclair/typebox';
+import { fromTypebox } from 'bun-little-orm';
+
+// Define el esquema
+const UserSchema = Type.Object({
+  id: Type.Optional(Type.Number()),
+  name: Type.String(),
+  email: Type.String({ format: 'email' })
+}, {
+  $id : "User"
+});
+
+// Inferir el tipo TypeScript
+type User = Static<typeof UserSchema>;
+
+// Crear la colección con el esquema
+let Users = fromTypebox(new Database("mydb.sqlite"), UserSchema);
+
+// Insertar un nuevo usuario
+let newUser = await Users.insert({
+  name: "Alice",
+  email: "alice@example.com",
+  age: 25
+});
+
+```
+En caso de error de validación, los errores tienen el [formato de TypeBox](https://github.com/sinclairzx81/typebox?tab=readme-ov-file#values-errors).
+
 De momento no se puede borrar. Pero para ir tirando yo creo que está bien.
 
 Espero que sea de utilidad. Para cualquer sugerencia me comentáis.
+
 
 ## English
 
@@ -133,6 +167,42 @@ Updates can also be made by id.
 ````js
 col.update(1, { hello : "updates" });
 ````
+
+## TypeBox Support
+With TypeBox, you can define validation schemas for your models and leverage TypeScript type inference.
+
+### Define a Schema with TypeBox
+
+```typescript
+import { Type, Static } from '@sinclair/typebox';
+import { fromTypebox } from 'bun-little-orm';
+
+// Define the schema
+const UserSchema = Type.Object({
+  id: Type.Optional(Type.Number()),
+  name: Type.String(),
+  email: Type.String({ format: 'email' })
+}, {
+  $id : "User"
+});
+
+// Infer the TypeScript type
+type User = Static<typeof UserSchema>;
+
+// Create the collection with the schema
+let Users = fromTypebox(new Database("mydb.sqlite"), UserSchema);
+
+// Insert a new user
+let newUser = await Users.insert({
+  name: "Alice",
+  email: "alice@example.com",
+  age: 25
+});
+```
+
+In case of a validation error, the errors follow the [TypeBox error format](https://github.com/sinclairzx81/typebox?tab=readme-ov-file#values-errors).
+
+
 
 For now you cannot delete. But for getting started, I think it's fine.
 
