@@ -75,7 +75,7 @@ import { fromTypebox } from 'bun-little-orm';
 const UserSchema = Type.Object({
   id: Type.Optional(Type.Number()),
   name: Type.String(),
-  email: Type.String({ format: 'email' })
+  email: Type.String()
 }, {
   $id : "User"
 });
@@ -181,7 +181,7 @@ import { fromTypebox } from 'bun-little-orm';
 const UserSchema = Type.Object({
   id: Type.Optional(Type.Number()),
   name: Type.String(),
-  email: Type.String({ format: 'email' })
+  email: Type.String()
 }, {
   $id : "User"
 });
