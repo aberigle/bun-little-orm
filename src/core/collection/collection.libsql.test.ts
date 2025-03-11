@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import Collection from '../src/collection';
+import Collection from './collection';
 
 import { createClient } from "@libsql/client";
 
