@@ -1,4 +1,4 @@
-import { TSchema, type TObject } from "@sinclair/typebox"
+import { TSchema } from "@sinclair/typebox"
 import { Model } from "./model"
 
 export function fromTypebox<T extends TSchema>(

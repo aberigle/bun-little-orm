@@ -41,7 +41,7 @@ export class Model<T extends TSchema> extends Collection {
   }
 
   cast(value: any): Static<T> {
-    return Value.Clean(this.schema, value)
+    return Value.Clean(this.schema, { ...value })
   }
 
   async insert(

@@ -1,35 +1,26 @@
-import { TObject, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
-import Database from 'bun:sqlite';
 import { describe, expect, it } from 'bun:test';
 import { Model } from './model';
 
-const reusableDB = new Database()
-const TestSchema = Type.Object({
-  text   : Type.String(),
-  digit  : Type.Number(),
-  date   : Type.Date(),
-  object : Type.Object({ nested: Type.String() }),
-  list   : Type.Array(Type.Object({ nested: Type.String() })),
-  flag   : Type.Boolean()
-})
+import { createClient } from "@libsql/client";
+const reusableDB = createClient({ url: `:memory:` })
 
-function getModel(
-  schema: TObject = TestSchema,
-  db: Database = new Database()
-) {
-  return new Model(db, "test", schema)
+let execute = async (query: string) => {
+  let result = await reusableDB.execute(query)
+  return result.rows
 }
+
 describe('typebox', () => {
-  describe("model", () => {
+  describe("model (libsql)", () => {
     it('inserts in a new collection', async () => {
       const schema = Type.Object({ test: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
       await model.insert({ test: 1 })
 
-      let result: any = reusableDB.query(`SELECT * FROM test`).get()
-      expect(result.test).toBe(1)
+      let result: any = await execute(`SELECT * FROM test`)
+      expect(result[0].test).toBe(1)
     })
 
     it('alters table with new fields', async () => {
@@ -38,9 +29,10 @@ describe('typebox', () => {
 
       await model.insert({ field: "success", test: 2 })
 
-      let result: any = reusableDB.query(`SELECT * FROM test LIMIT 1 OFFSET 1`).get()
-      expect(result.test).toBe(2)
-      expect(result.field).toBe("success")
+      let result: any = await execute(`SELECT * FROM test LIMIT 1 OFFSET 1`)
+
+      expect(result[0].test).toBe(2)
+      expect(result[0].field).toBe("success")
     })
 
     it('validates data inserted', async () => {
