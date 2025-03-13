@@ -3,7 +3,7 @@ import { isEmpty } from "@/utils/objects";
 import { Static, TSchema, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { parseSchema } from "./transform/schema";
-import { ValidationException } from "./validation-expection";
+import { ValidationException } from "./validation-exception";
 
 export class Model<T extends TSchema> extends Collection {
 
