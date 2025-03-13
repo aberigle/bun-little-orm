@@ -8,6 +8,7 @@ export function parseSchema(
   const schema: Record<string, Field> = {}
 
   for (const key in object.properties) {
+    if (key === "id") continue
     const property = object.properties[key]
     const field = parseProperty(property)
 

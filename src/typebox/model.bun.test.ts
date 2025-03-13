@@ -23,7 +23,7 @@ function getModel(
 describe('typebox', () => {
   describe("model (bun)", () => {
     it('inserts in a new collection', async () => {
-      const schema = Type.Object({ test: Type.Number() })
+      const schema = Type.Object({ id : Type.Number(), test: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
       await model.insert({ test: 1 })
