@@ -1,5 +1,16 @@
 import { Field } from "@/core";
-import { TSchema } from "@sinclair/typebox";
+import { TSchema, TUnion } from "@sinclair/typebox";
+
+function parseUnionProperty(
+  field : TUnion
+) : Field {
+
+  // add support for dates as string or number
+  const date: TSchema | undefined = field.anyOf.find(({ type }) => type == "Date")
+  if (date !== undefined) return parseProperty(date)
+
+  throw new Error("Type not supported: Union")
+}
 
 
 export function parseProperty(
@@ -30,6 +41,7 @@ export function parseProperty(
     //   ref  : field.$ref
     // }
     case 'Any'   : return new Field("object")
+    case 'Union' : return parseUnionProperty(field as TUnion)
     // case 'Union' :
     //   let ref = field.anyOf.find((item: TSchema) => key in item && item[key] === 'Ref')
     //   if (ref) return parseProperty(ref)

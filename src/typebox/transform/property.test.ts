@@ -39,6 +39,11 @@ describe('typebox properties',() => {
       const field = parseProperty(Type.Array(Type.Object({})))
       expect(field.type).toBe("array")
     })
+
+    it("Type.Union for dates", () => {
+      const field = parseProperty(Type.Union([Type.Date(), Type.String(), Type.Number()]))
+      expect(field.type).toBe("date")
+    })
   })
 
 })
