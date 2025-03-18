@@ -46,6 +46,16 @@ export class Model<T extends TSchema> extends Collection {
     return Value.Clean(this.schema, { ...value })
   }
 
+  async sql(
+    query : string,
+    params : Array<any>
+  ): Promise<Array<Static<T>>> {
+
+    const result: Array<any> = await this.execute(query, params)
+    return result
+    .map(item => this.cast(this.transform(item)))
+  }
+
   async insert(
     model: Omit<Static<T>, "id">
   ): Promise<Static<T>> {
