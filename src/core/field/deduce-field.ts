@@ -1,5 +1,5 @@
 import Field from "./field"
-import { TypeMap } from "./types"
+import { FieldType, TypeMap } from "./types"
 
 
 /**
@@ -18,7 +18,7 @@ export function deduceFieldType(
 
   if (!TypeMap[type]) throw new Error(`Unsupported type for ${value}!`)
 
-  return new Field(type)
+  return new Field(type as FieldType)
 }
 
 /**
