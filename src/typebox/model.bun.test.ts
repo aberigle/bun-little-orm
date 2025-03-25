@@ -178,5 +178,21 @@ describe('typebox', () => {
       const search  = await model.find({ success: false })
       expect(search.length).toBe(1)
     })
+
+    it("supports refs", async () => {
+      const OneSchema = Type.Object({ id: Type.Number(), test: Type.String() }, { $id: "One" })
+      const One = new Model(reusableDB, <string>OneSchema.$id, OneSchema)
+
+      const TwoSchema = Type.Object({
+        two: Type.String(),
+        one: Type.Union([Type.Number(), OneSchema])
+      }, { $id: "Two" })
+      const Two = new Model(reusableDB, <string>TwoSchema.$id, TwoSchema)
+
+      const oneInserted = await One.insert({ test: "references" })
+      const twoInserted = await Two.insert({ two: "adios", one: oneInserted })
+
+      expect(twoInserted.one).toEqual(oneInserted.id)
+    })
   })
 })

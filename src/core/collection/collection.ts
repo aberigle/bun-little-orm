@@ -42,7 +42,7 @@ export default class Collection {
       })
       return result.rows
     } catch (error) {
-      console.log(query, error)
+      console.log(query, params, error)
       return []
     }
   }
@@ -58,14 +58,15 @@ export default class Collection {
   async insert(
     model: any
   ) {
-    let clone = Object.assign({}, model)
-    let fields = deduceFields(clone)
-
-    await this.ensure(fields)
+    const clone  = Object.assign({}, model)
+    const fields = await this.ensure(deduceFields(clone))
 
     const values: Array<any> = []
     const names: string[] = []
-    for (let [name, field] of Object.entries(fields)) {
+    for (let [
+      name,
+      field
+    ] of Object.entries(fields)) if (clone[name]) {
       values.push(field.cast(clone[name]))
       names.push("'" + getFieldName(name, field) + "'")
     }

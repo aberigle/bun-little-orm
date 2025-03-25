@@ -1,8 +1,9 @@
+import { FieldType } from "./types"
 
 export default class Field {
 
   constructor(
-    public type : string,
+    public type: FieldType,
     public required: boolean = false
   ) { }
 
@@ -33,6 +34,7 @@ export default class Field {
       case 'boolean': return Number(value)
       case 'array'  :
       case 'object' : return JSON.stringify(value)
+      case 'id'     : return typeof value === "object" ? value.id : value
       default : return value
     }
 

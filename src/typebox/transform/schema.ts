@@ -1,16 +1,18 @@
 import { Field } from "@/core"
 import { TSchema } from "@sinclair/typebox"
+import { Model } from "../model"
 import { parseProperty } from "./property"
 
 export function parseSchema(
-  object: TSchema
+  object: TSchema,
+  references: Model<any>[] = []
 ) {
   const schema: Record<string, Field> = {}
 
   for (const key in object.properties) {
     if (key === "id") continue
     const property = object.properties[key]
-    const field = parseProperty(property)
+    const field = parseProperty(property, references)
 
     if (field.type) field.required = !!object.required?.includes(key)
 

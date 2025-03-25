@@ -1,8 +1,6 @@
 import Field from "./field"
 import { TypeMap } from "./types"
 
-
-
 /**
  * Returns the field name in the db
  *

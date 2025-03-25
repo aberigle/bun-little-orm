@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { Type } from '@sinclair/typebox'
 import { parseProperty } from './property'
+import { fromTypebox } from '..'
 
 
 describe('typebox properties',() => {
@@ -43,6 +44,13 @@ describe('typebox properties',() => {
     it("Type.Union for dates", () => {
       const field = parseProperty(Type.Union([Type.Date(), Type.String(), Type.Number()]))
       expect(field.type).toBe("date")
+    })
+
+    it("Type.Union for relations", () => {
+      const ref = fromTypebox({}, Type.Object({ test: Type.String() }, { $id: "RefTest" }))
+      const field = parseProperty(Type.Union([Type.Number(), ref.schema]))
+
+      expect(field.type).toBe("id")
     })
   })
 

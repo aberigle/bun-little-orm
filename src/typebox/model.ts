@@ -5,6 +5,8 @@ import { Value } from "@sinclair/typebox/value";
 import { parseSchema } from "./transform/schema";
 import { ValidationException } from "./validation-exception";
 
+const cache: Model<any>[] = []
+const schemas: TSchema[]  = []
 export class Model<T extends TSchema> extends Collection {
 
   constructor(
@@ -13,13 +15,18 @@ export class Model<T extends TSchema> extends Collection {
     public schema : T
   ) {
     super(db, name)
+
+    if (!schema.$id && name) schema.$id = name
+
+    cache.push(this)
+    schemas.push(this.schema)
   }
 
   async ensure(
     fields?: Record<string, Field>
   ): Promise<Record<string, Field>> {
     if (isEmpty(this.fields))
-      await super.ensure(parseSchema(this.schema))
+      await super.ensure(parseSchema(this.schema, cache))
 
     return this.fields
   }
@@ -35,6 +42,7 @@ export class Model<T extends TSchema> extends Collection {
         partial
         ? Type.Partial(this.schema)
         : this.schema,
+        schemas,
         model)
       ]
     .filter(({ path }) => path !== "/id")

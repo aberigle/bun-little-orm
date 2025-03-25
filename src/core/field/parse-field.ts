@@ -1,5 +1,5 @@
 import Field from "./field"
-import { PragmaResult, TypeMap } from "./types"
+import { FieldType, PragmaResult, TypeMap } from "./types"
 
 
 /**
@@ -19,21 +19,21 @@ export function parseFieldListFromDb(
 }
 
 export function parseFieldFromDb(
-  field: PragmaResult
+  pragma: PragmaResult
 ): {
   name: string,
-  type: string
+  type: FieldType
 } {
   let [
     name,
     type
-  ] = field.name.split("::") as [string, string | undefined]
+  ] = pragma.name.split("::") as [string, FieldType | undefined]
 
   // an integer and primary key
-  if (field.pk && field.type === "INTEGER") type = "number"
+  if (!type && pragma.type === "INTEGER") type = "id"
 
   if (type === undefined)
-    type = Object.keys(TypeMap).find(type => TypeMap[type] == field.type) as string
+    type = Object.keys(TypeMap).find((type) => TypeMap[type] == pragma.type) as FieldType
 
   return { name, type }
 }

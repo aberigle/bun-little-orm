@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { Static, Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 import { describe, expect, it } from 'bun:test';
 import { Model } from './model';
@@ -39,7 +39,7 @@ describe('typebox', () => {
       const schema = Type.Object({ test: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
-    // @ts-ignore
+      // @ts-ignore
       expect(async () => await model.insert({ test: "hola" })).toThrowError("Validation error")
     })
 
@@ -68,7 +68,7 @@ describe('typebox', () => {
     })
 
     it('can search by id', async () => {
-      const schema = Type.Object({ test: Type.Number(), id : Type.Number() })
+      const schema = Type.Object({ test: Type.Number(), id: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
       let result = await model.findById(2)
@@ -93,7 +93,7 @@ describe('typebox', () => {
       const model = new Model(reusableDB, "test", schema)
 
       let date = new Date()
-      let inserted = await model.insert({ date, test : 2 })
+      let inserted = await model.insert({ date, test: 2 })
 
       expect(() => Value.Assert(schema, inserted)).not.toThrow()
       expect(inserted.date).toEqual(date)
@@ -104,7 +104,7 @@ describe('typebox', () => {
 
     it('supports objects', async () => {
       const schema = Type.Object({
-        id : Type.Number(),
+        id: Type.Number(),
         object: Type.Object({ hola: Type.String() })
       })
       const model = new Model(reusableDB, "test", schema)
@@ -121,7 +121,7 @@ describe('typebox', () => {
 
     it('supports arrays', async () => {
       const schema = Type.Object({
-        id : Type.Number(),
+        id: Type.Number(),
         list: Type.Array(Type.String())
       })
       const model = new Model(reusableDB, "test", schema)
@@ -137,7 +137,7 @@ describe('typebox', () => {
     })
 
     it('supports updates', async () => {
-      const schema = Type.Object({ test: Type.Number(), id : Type.Number() })
+      const schema = Type.Object({ test: Type.Number(), id: Type.Number() })
       const model = new Model(reusableDB, "test", schema)
 
       const value = Date.now()
@@ -167,8 +167,25 @@ describe('typebox', () => {
       expect(() => Value.Assert(schema, updated)).not.toThrow()
       expect(updated.success).toEqual(false)
 
-      const search  = await model.find({ success: false })
+      const search = await model.find({ success: false })
       expect(search.length).toBe(1)
+    })
+
+    it("supports refs", async () => {
+      const OneSchema = Type.Object({ id: Type.Number(), test: Type.String() }, { $id: "One" })
+      const One = new Model(reusableDB, <string>OneSchema.$id, OneSchema)
+
+      const TwoSchema = Type.Object({
+        two: Type.String(),
+        one: Type.Union([Type.Number(), OneSchema])
+      }, { $id: "Two" })
+      const Two = new Model(reusableDB, <string>TwoSchema.$id, TwoSchema)
+
+      const oneInserted = await One.insert({ test: "references" })
+      const twoInserted = await Two.insert({ two: "adios", one: oneInserted })
+
+      expect(twoInserted.one).toEqual(oneInserted.id)
+
     })
   })
 })
