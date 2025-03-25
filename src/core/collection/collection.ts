@@ -8,16 +8,16 @@ import { getFieldDefinition, getFieldName } from "../field/serialize"
 const ID_FIELD = "id"
 
 export default class Collection {
-  db     : any
-  table  : string
-  fields : Record<string, Field>
+  db: any
+  table: string
+  fields: Record<string, Field>
 
   constructor(
     db: any,
     name: string
   ) {
-    this.db     = db
-    this.table  = name
+    this.db = db
+    this.table = name
     this.fields = {}
   }
 
@@ -50,13 +50,20 @@ export default class Collection {
     query: string,
     params: Array<any> = []
   ) {
+
     try {
       if (this.db.query) return this.db.query(query).all(params)
 
       let result = await this.db.execute({
         sql: query, args: params
       })
+
+      const columns: string[] = result.columns
       return result.rows
+      .map(item => columns.reduce((result, key, index) => {
+        result[key] = item[index]
+        return result
+      }, {}))
     } catch (error) {
       console.log(query, params, error)
       return []
@@ -65,16 +72,16 @@ export default class Collection {
 
   transform(item) {
     return Object.entries(this.fields)
-    .reduce((result, [name, field]) => {
-      result[name] = field.parse(result[getFieldName(name, field)])
-      return result
-    }, item)
+      .reduce((result, [name, field]) => {
+        result[name] = field.parse(result[getFieldName(name, field)])
+        return result
+      }, item)
   }
 
   async insert(
     model: any
   ) {
-    const clone  = Object.assign({}, model)
+    const clone = Object.assign({}, model)
     const fields = await this.ensure(deduceFields(clone))
 
     const values: Array<any> = []
@@ -88,7 +95,7 @@ export default class Collection {
     }
 
     let query = `INSERT INTO ${this.table} `
-    query +=  `(${names.join(",")})`
+    query += `(${names.join(",")})`
     query += `VALUES (${values.map(_ => '?').join(",")}) `
     query += `RETURNING *`
 
@@ -96,7 +103,7 @@ export default class Collection {
     return this.transform(result[0])
   }
 
-  async findById(query : any) {
+  async findById(query: any) {
     if (typeof query === 'object') query = query[ID_FIELD]
 
     if (isNaN(query)) return
@@ -105,7 +112,7 @@ export default class Collection {
     return result[0]
   }
 
-  async find(search={}) {
+  async find(search = {}) {
     let fields = await this.ensure({})
     if (isEmpty(fields)) return []
 
@@ -115,19 +122,19 @@ export default class Collection {
     let values: Array<string> = []
 
     if (keys.length) {
-      let clone   = Object.assign({}, search)
+      let clone = Object.assign({}, search)
       const fields = deduceFields(clone)
       let filters = Object.entries(fields)
-      .map(([name, field]) => {
-        let action = "="
-        let value: any = clone[name]
+        .map(([name, field]) => {
+          let action = "="
+          let value: any = clone[name]
 
-        values.push(field.cast(value))
+          values.push(field.cast(value))
 
-        if (value.includes && value.includes("%")) action = "LIKE"
+          if (value.includes && value.includes("%")) action = "LIKE"
 
-        return `"${getFieldName(name, field)}" ${action} ?`
-      })
+          return `"${getFieldName(name, field)}" ${action} ?`
+        })
 
       query += ` WHERE ${filters.join(" AND ")}`
     }
@@ -137,8 +144,8 @@ export default class Collection {
   }
 
   async update(
-    id : any,
-    model={}
+    id: any,
+    model = {}
   ) {
     let clone = Object.assign({}, model)
     let fields = deduceFields(clone)
@@ -153,7 +160,7 @@ export default class Collection {
     }
 
     let query = `UPDATE ${this.table} SET `
-    query +=  names.map(field => `${field} = ?`).join(",")
+    query += names.map(field => `${field} = ?`).join(",")
     query += ` WHERE ${ID_FIELD} = ${id} `
     query += `RETURNING *`
 
@@ -170,11 +177,11 @@ export default class Collection {
 
     // check if we are missing any required field
     let missing = Object.keys(fields)
-    .filter(value => !(value in this.fields))
-    .reduce((result, key) => {
-      result[key] = fields[key]
-      return result
-    }, {})
+      .filter(value => !(value in this.fields))
+      .reduce((result, key) => {
+        result[key] = fields[key]
+        return result
+      }, {})
 
     if (isEmpty(missing)) return this.fields
 
@@ -196,8 +203,8 @@ export default class Collection {
   ) {
     let query = `CREATE TABLE ${this.table} (${ID_FIELD} INTEGER PRIMARY KEY AUTOINCREMENT, `
     query += Object.entries(fields)
-    .map(([name, field]) => getFieldDefinition(name, field)).join(",")
-    query +=    ")"
+      .map(([name, field]) => getFieldDefinition(name, field)).join(",")
+    query += ")"
 
     return this.run(query)
   }
