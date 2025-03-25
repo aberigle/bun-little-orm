@@ -5,7 +5,7 @@ import { Value } from "@sinclair/typebox/value";
 import { parseSchema } from "./transform/schema";
 import { ValidationException } from "./validation-exception";
 
-const cache: Model<any>[] = []
+const cache: Record<string, Model<any>> = {}
 const schemas: TSchema[]  = []
 export class Model<T extends TSchema> extends Collection {
 
@@ -18,17 +18,19 @@ export class Model<T extends TSchema> extends Collection {
 
     if (!schema.$id && name) schema.$id = name
 
-    cache.push(this)
+    cache[name] = this
     schemas.push(this.schema)
   }
 
   async ensure(
     fields?: Record<string, Field>
   ): Promise<Record<string, Field>> {
-    if (isEmpty(this.fields))
-      await super.ensure(parseSchema(this.schema, cache))
 
-    return this.fields
+    const parsed = parseSchema(this.schema, Object.values(cache))
+    if (isEmpty(this.fields))
+      await super.ensure(parsed)
+
+    return this.fields = parsed
   }
 
   validate(
@@ -56,10 +58,11 @@ export class Model<T extends TSchema> extends Collection {
 
   async sql(
     query : string,
-    params : Array<any>
+    params: Array<any> = []
   ): Promise<Array<Static<T>>> {
 
     const result: Array<any> = await this.execute(query, params)
+
     return result
     .map(item => this.cast(this.transform(item)))
   }

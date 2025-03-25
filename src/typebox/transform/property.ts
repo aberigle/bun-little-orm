@@ -3,15 +3,19 @@ import { TSchema, TUnion } from "@sinclair/typebox";
 import { Model } from "../model";
 
 function parseUnionProperty(
-  field : TUnion
+  field : TUnion,
+  references : Model<any>[] = []
 ) : Field {
 
   // add support for dates as string or number
   const date: TSchema | undefined = field.anyOf.find(({ type }) => type == "Date")
   if (date !== undefined) return parseProperty(date)
 
-  const model = field.anyOf.find(({ $id }) => $id)
-  if (model && field.anyOf.length == 2) return new Field("id")
+  const schema = field.anyOf.find(({ $id }) => $id)
+  if (schema && field.anyOf.length == 2) {
+    const model = references.find(({ schema: { $id } }) => $id == schema.$id)
+    return new Field("id", model)
+  }
 
   throw new Error("Type not supported: Union")
 }
@@ -47,7 +51,7 @@ export function parseProperty(
     //   return new Field("number", true)
     // }
     case 'Any'   : return new Field("object")
-    case 'Union' : return parseUnionProperty(field as TUnion)
+    case 'Union' : return parseUnionProperty(field as TUnion, references)
     // case 'Union' :
     //   let ref = field.anyOf.find((item: TSchema) => key in item && item[key] === 'Ref')
     //   if (ref) return parseProperty(ref)

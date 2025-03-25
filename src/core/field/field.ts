@@ -1,11 +1,14 @@
+import { Model } from "@/typebox"
 import { FieldType } from "./types"
 
 export default class Field {
+  public required : boolean
 
   constructor(
     public type: FieldType,
-    public required: boolean = false
-  ) { }
+    private extra: any = {}
+
+  ) {}
 
   /**
    * Reads a value from the db a returns is as javascript
@@ -18,6 +21,9 @@ export default class Field {
       case 'boolean' : return value === 1
       case 'array'   :
       case 'object'  : return JSON.parse(value)
+      case 'id'      :
+        const model = this.extra as Model<any>
+        return typeof value == "string" ? model.cast(model.transform(JSON.parse(value))) : value
       default        : return value
     }
   }

@@ -21,6 +21,22 @@ export default class Collection {
     this.fields = {}
   }
 
+  toJSON_OBJECT(
+    alias: string = this.table
+  ) {
+    let fields: string[] = [`'id', One.id`]
+
+    for (let [
+      name,
+      field
+    ] of Object.entries(this.fields)) {
+      const fieldName = getFieldName(name, field)
+      fields.push(`'${fieldName}',${alias}.'${fieldName}'`)
+    }
+
+    return `JSON_OBJECT(${fields.join(",")})`
+  }
+
   async run(
     query: string
   ) {

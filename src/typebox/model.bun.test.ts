@@ -1,6 +1,6 @@
-import { TObject, Type } from '@sinclair/typebox';
+import { Static, TObject, Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
-import Database from 'bun:sqlite';
+import Database, { Statement } from 'bun:sqlite';
 import { describe, expect, it } from 'bun:test';
 import { Model } from './model';
 
@@ -180,7 +180,11 @@ describe('typebox', () => {
     })
 
     it("supports refs", async () => {
-      const OneSchema = Type.Object({ id: Type.Number(), test: Type.String() }, { $id: "One" })
+      const OneSchema = Type.Object({
+        id: Type.Number(),
+        date : Type.Date(),
+        test: Type.String()
+      }, { $id: "One" })
       const One = new Model(reusableDB, <string>OneSchema.$id, OneSchema)
 
       const TwoSchema = Type.Object({
@@ -189,10 +193,26 @@ describe('typebox', () => {
       }, { $id: "Two" })
       const Two = new Model(reusableDB, <string>TwoSchema.$id, TwoSchema)
 
-      const oneInserted = await One.insert({ test: "references" })
+      const oneInserted = await One.insert({ test: "references", date : new Date() })
       const twoInserted = await Two.insert({ two: "adios", one: oneInserted })
 
       expect(twoInserted.one).toEqual(oneInserted.id)
+
+      const [result] = await Two.sql(`
+        SELECT
+          Two.*,
+          ${One.toJSON_OBJECT()} as one
+        FROM Two
+        INNER JOIN One on Two.one = One.id
+      `)
+
+      expect(result.one).toBeObject()
+      const one = result.one as Static<typeof OneSchema>
+
+      expect(one.date).toEqual(oneInserted.date)
+      expect(one.id).toBe(oneInserted.id)
     })
+
+
   })
 })
