@@ -24,7 +24,7 @@ export default class Collection {
   toJSON_OBJECT(
     alias: string = this.table
   ) {
-    let fields: string[] = [`'id', One.id`]
+    let fields: string[] = [`'id', ${alias}.id`]
 
     for (let [
       name,
