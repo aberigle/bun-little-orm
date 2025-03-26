@@ -10,7 +10,7 @@ export function buildWhere(
 } {
   const keys = Object.keys(filter)
 
-  if (!keys.length) return { sql: '', args: [] }
+  if (!keys.length) return { sql: '', args: [], joins: {} }
 
   const values     : any[] = []
   const conditions : string[] = []
