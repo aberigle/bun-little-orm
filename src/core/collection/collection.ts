@@ -170,7 +170,7 @@ export default class Collection {
         return result
       }, {})
 
-    if (isEmpty(missing)) return this.fields
+    if (isEmpty(missing)) return { ...this.fields, ...fields }
 
     let result
     // the table doesn't exist yet
