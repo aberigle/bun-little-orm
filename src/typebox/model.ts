@@ -58,7 +58,7 @@ export class Model<T extends TSchema> extends Collection {
     // fields: string[] | Record<string, Record<string, any>>,
   ) {
     await this.ensure()
-    let select: string = `SELECT *, `
+    let select: string = `SELECT ${this.table}.*, `
     let from  : string = `FROM ${this.table} `
     let where : string[] = []
     let params : any[] = []
@@ -87,8 +87,10 @@ export class Model<T extends TSchema> extends Collection {
       if (subFilter.args.length) params.push(...subFilter.args)
     }
 
+    where = where.filter(q => q)
+
     return this.sql(
-      select + from + (where.length ? `WHERE ${where.filter(q => q).join(" AND ")}` : ''),
+      select + from + (where.length ? `WHERE ${where.join(" AND ")}` : ''),
       params
     )
   }
