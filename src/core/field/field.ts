@@ -6,8 +6,7 @@ export default class Field {
 
   constructor(
     public type: FieldType,
-    private extra: any = {}
-
+    public extra: any = {}
   ) {}
 
   /**
@@ -23,7 +22,9 @@ export default class Field {
       case 'object'  : return JSON.parse(value)
       case 'id'      :
         const model = this.extra as Model<any>
-        return typeof value == "string" ? model.cast(model.transform(JSON.parse(value))) : value
+        return typeof value == "string"
+          ? model.cast(model.transform(JSON.parse(value)))
+          : value
       default        : return value
     }
   }

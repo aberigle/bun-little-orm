@@ -1,4 +1,5 @@
 import { Collection, Field } from "@/core";
+import { buildWhere } from "@/core/queries/build-where";
 import { isEmpty } from "@/utils/objects";
 import { Static, TSchema, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -52,13 +53,52 @@ export class Model<T extends TSchema> extends Collection {
     return Value.Clean(this.schema, { ...value })
   }
 
+  async findAndJoin(
+    filter : Record<string, any> = {},
+    // fields: string[] | Record<string, Record<string, any>>,
+  ) {
+    await this.ensure()
+    let select: string = `SELECT *, `
+    let from  : string = `FROM ${this.table} `
+    let where : string[] = []
+    let params : any[] = []
+
+    const {
+      sql,
+      args,
+      joins
+    } = buildWhere(this.fields, filter)
+
+    params.push(...args)
+    where.push(sql)
+
+    for (const field of Object.keys(joins)) {
+      const ref = joins[field]
+      if (ref.type != "id") continue
+
+      const model = ref.extra as Model<never>
+      await model.ensure()
+
+      select += model.toJSON_OBJECT() + ` as ${field} `
+      from   += `INNER JOIN ${model.table} ON ${model.table}.id = ${this.table}.${field} `
+
+      const subFilter = buildWhere(model.fields, filter[field], model.table)
+      if (subFilter.sql.length)  where.push(subFilter.sql)
+      if (subFilter.args.length) params.push(...subFilter.args)
+    }
+
+    return this.sql(
+      select + from + (where.length ? `WHERE ${where.filter(q => q).join(" AND ")}` : ''),
+      params
+    )
+  }
+
   async sql(
     query : string,
     params: Array<any> = []
   ): Promise<Array<Static<T>>> {
-
+    await this.ensure()
     const result: Array<any> = await this.execute(query, params)
-
     return result
     .map(item => this.cast(this.transform(item)))
   }
@@ -88,7 +128,6 @@ export class Model<T extends TSchema> extends Collection {
     model : Partial<Static<T>>
   ): Promise<Static<T>> {
     this.validate(model, true)
-
     const result = await super.update(id, model)
     return this.cast(result)
   }

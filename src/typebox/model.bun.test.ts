@@ -198,13 +198,7 @@ describe('typebox', () => {
 
       expect(twoInserted.one).toEqual(oneInserted.id)
 
-      const [result] = await Two.sql(`
-        SELECT
-          Two.*,
-          ${One.toJSON_OBJECT()} as one
-        FROM Two
-        INNER JOIN One on Two.one = One.id
-      `)
+      const [result] = await Two.findAndJoin({ "one": { id: 1 } })
 
       expect(result.one).toBeObject()
       const one = result.one as Static<typeof OneSchema>

@@ -30,7 +30,7 @@ describe('collection', () => {
       expect(result.length).toBe(1)
     })
 
-    it('cant search by id', async () => {
+    it('can search by id', async () => {
       let result = await col.findById(2)
       expect(result.field).toBe("success")
     })
