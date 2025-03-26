@@ -22,15 +22,11 @@ export class Model<T extends TSchema> extends Collection {
     schemas.push(this.schema)
   }
 
-  async ensure(
-    fields?: Record<string, Field>
-  ): Promise<Record<string, Field>> {
+  async ensure(): Promise<Record<string, Field>> {
+    if (!isEmpty(this.fields)) return this.fields
 
     const parsed = parseSchema(this.schema, Object.values(cache))
-    if (isEmpty(this.fields))
-      await super.ensure(parsed)
-
-    return this.fields = parsed
+    return this.fields = await super.ensure(parsed)
   }
 
   validate(

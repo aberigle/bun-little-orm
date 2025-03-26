@@ -4,6 +4,7 @@ import { Field } from "../field"
 import { deduceFields } from "../field/deduce-field"
 import { parseFieldListFromDb } from "../field/parse-field"
 import { getFieldDefinition, getFieldName } from "../field/serialize"
+import { buildWhere } from "../queries/build-where"
 
 const ID_FIELD = "id"
 
@@ -173,18 +174,16 @@ export default class Collection {
 
     let result
     // the table doesn't exist yet
-    if (isEmpty(this.fields)) result = await this.create(fields)
+    if (isEmpty(this.fields))
+      return this.fields = await this.create(fields)
+
     // the table exists but is missing some field
-    else result = await this.alter(missing)
-
-    // refresh the existing fields
-    this.fields = {}
-
-    return this.ensure(fields)
+    result = await this.alter(missing)
+    return this.fields = { ...this.fields, ...missing }
   }
 
   // creates a table with the defined fields
-  create(
+  async create(
     fields: Record<string, Field>
   ) {
     let query = `CREATE TABLE ${this.table} (${ID_FIELD} INTEGER PRIMARY KEY AUTOINCREMENT, `
@@ -192,7 +191,9 @@ export default class Collection {
       .map(([name, field]) => getFieldDefinition(name, field)).join(",")
     query += ")"
 
-    return this.run(query)
+    const result = await this.run(query)
+
+    return { ...fields, [ID_FIELD] : new Field("id")}
   }
 
   // alters a table to add some fields
