@@ -116,30 +116,16 @@ export default class Collection {
     let fields = await this.ensure({})
     if (isEmpty(fields)) return []
 
-    let query = `SELECT * FROM ${this.table}`
-    let keys = Object.keys(search)
+    let query = `SELECT * FROM ${this.table} `
 
-    let values: Array<string> = []
+    const {
+      sql,
+      args
+    } = buildWhere(fields, search)
 
-    if (keys.length) {
-      let clone = Object.assign({}, search)
-      const fields = deduceFields(clone)
-      let filters = Object.entries(fields)
-        .map(([name, field]) => {
-          let action = "="
-          let value: any = clone[name]
+    if (sql.length) query += `WHERE ${sql}`
 
-          values.push(field.cast(value))
-
-          if (value.includes && value.includes("%")) action = "LIKE"
-
-          return `"${getFieldName(name, field)}" ${action} ?`
-        })
-
-      query += ` WHERE ${filters.join(" AND ")}`
-    }
-
-    let result = await this.execute(query, values)
+    let result = await this.execute(query, args)
     return result.map(item => this.transform(item))
   }
 
