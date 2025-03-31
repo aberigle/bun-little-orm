@@ -67,7 +67,7 @@ export class Model<T extends TSchema> extends Collection {
       sql,
       args,
       joins
-    } = buildWhere(this.fields, filter)
+    } = buildWhere(this.fields, filter, this.table)
 
     params.push(...args)
     where.push(sql)
