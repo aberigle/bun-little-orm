@@ -10,6 +10,10 @@ const cache: Record<string, Model<any>> = {}
 const schemas: TSchema[]  = []
 export class Model<T extends TSchema> extends Collection {
 
+  static reset() {
+    for (const model of Object.values(cache)) model.fields = {}
+  }
+
   constructor(
     db     : any,
     name   : string,
