@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { Type } from '@sinclair/typebox'
 import { parseProperty } from './property'
 import { fromTypebox } from '..'
+import { ModelReference } from '../model-reference'
 
 
 describe('typebox properties',() => {
@@ -47,8 +48,8 @@ describe('typebox properties',() => {
     })
 
     it("Type.Union for relations", () => {
-      const ref = fromTypebox({}, Type.Object({ test: Type.String() }, { $id: "RefTest" }))
-      const field = parseProperty(Type.Union([Type.Number(), ref.schema]))
+      const ref   = fromTypebox({}, Type.Object({ test: Type.String() }, { $id: "RefTest" }))
+      const field = parseProperty(ModelReference(ref), [ref])
 
       expect(field.type).toBe("id")
     })

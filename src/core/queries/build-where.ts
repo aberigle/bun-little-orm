@@ -18,11 +18,12 @@ export function buildWhere(
 
   for (const name of keys) if (fields[name]) {
     const field = fields[name]
-    // TODO mejorar esto
-    if (field.type === "id" && field.extra.table) {
+    // TODO mejorar esto (cambiar lo de extra)
+    if (field.type === "id" && field.extra?.table) {
       joins[name] = field
       continue
     }
+
     let action = "="
     const value = filter[name]
 

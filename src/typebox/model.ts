@@ -6,7 +6,7 @@ import { Value } from "@sinclair/typebox/value";
 import { parseSchema } from "./transform/schema";
 import { ValidationException } from "./validation-exception";
 
-const cache: Record<string, Model<any>> = {}
+const cache: Record<string, Model<TSchema>> = {}
 const schemas: TSchema[] = []
 export class Model<T extends TSchema> extends Collection {
 
@@ -58,7 +58,7 @@ export class Model<T extends TSchema> extends Collection {
   }
 
   async findAndJoin(
-    filter: Record<string, any> = {}
+    filter: Partial<Static<T>> = {}
   ) {
     await this.ensure()
     let select : string[] = [`SELECT ${this.table}.*`]

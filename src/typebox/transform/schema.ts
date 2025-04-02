@@ -5,7 +5,7 @@ import { parseProperty } from "./property"
 
 export function parseSchema(
   object: TSchema,
-  references: Model<any>[] = []
+  references: Model<TSchema>[] = []
 ) {
   const schema: Record<string, Field> = {}
 

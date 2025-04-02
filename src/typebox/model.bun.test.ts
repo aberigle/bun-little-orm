@@ -3,6 +3,7 @@ import { Value } from '@sinclair/typebox/value';
 import Database, { Statement } from 'bun:sqlite';
 import { describe, expect, it } from 'bun:test';
 import { Model } from './model';
+import { ModelReference } from './model-reference';
 
 const reusableDB = new Database()
 const TestSchema = Type.Object({
@@ -182,23 +183,23 @@ describe('typebox', () => {
 
     describe("relations", () => {
       const OneSchema = Type.Object({
-        id   : Type.Number(),
+        id: Type.Number(),
         date : Type.Date(),
-        test : Type.String()
+        test: Type.String()
       }, { $id: "One" })
       const One = new Model(reusableDB, <string>OneSchema.$id, OneSchema)
 
       const TwoSchema = Type.Object({
         id    : Type.Number(),
         field : Type.String(),
-        one   : Type.Union([Type.Number(), OneSchema])
+        one   : ModelReference(One)
       }, { $id: "Two" })
       const Two = new Model(reusableDB, <string>TwoSchema.$id, TwoSchema)
 
       const ThreeSchema = Type.Object({
         id    : Type.Number(),
         field : Type.String(),
-        two   : Type.Union([Type.Number(), TwoSchema])
+        two   : ModelReference(Two)//Type.Union([Type.Number(), TwoSchema])
       }, { $id: "Three" })
       const Three = new Model(reusableDB, <string>ThreeSchema.$id, ThreeSchema)
 
@@ -206,7 +207,7 @@ describe('typebox', () => {
         const oneInserted = await One.insert({ test: "references", date : new Date("2025-02-01") })
         const twoInserted = await Two.insert({ field: "adios",     one: oneInserted })
 
-        expect(twoInserted.one).toEqual(oneInserted.id)
+        expect(twoInserted.one.id).toEqual(oneInserted.id)
 
       })
 
