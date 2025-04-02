@@ -7,7 +7,7 @@ import { parseSchema } from "./transform/schema";
 import { ValidationException } from "./validation-exception";
 
 const cache: Record<string, Model<any>> = {}
-const schemas: TSchema[]  = []
+const schemas: TSchema[] = []
 export class Model<T extends TSchema> extends Collection {
 
   static reset() {
@@ -15,9 +15,9 @@ export class Model<T extends TSchema> extends Collection {
   }
 
   constructor(
-    db     : any,
-    name   : string,
-    public schema : T
+    db: any,
+    name: string,
+    public schema: T
   ) {
     super(db, name)
 
@@ -43,12 +43,12 @@ export class Model<T extends TSchema> extends Collection {
     const errors = [
       ...Value.Errors(
         partial
-        ? Type.Partial(this.schema)
-        : this.schema,
+          ? Type.Partial(this.schema)
+          : this.schema,
         schemas,
         model)
-      ]
-    .filter(({ path }) => path !== "/id")
+    ]
+      .filter(({ path }) => path !== "/id")
 
     if (errors.length) throw new ValidationException(errors)
   }
@@ -58,14 +58,13 @@ export class Model<T extends TSchema> extends Collection {
   }
 
   async findAndJoin(
-    filter : Record<string, any> = {},
-    // fields: string[] | Record<string, Record<string, any>>,
+    filter: Record<string, any> = {}
   ) {
     await this.ensure()
-    let select: string = `SELECT ${this.table}.*, `
-    let from  : string = `FROM ${this.table} `
-    let where : string[] = []
-    let params : any[] = []
+    let select : string[] = [`SELECT ${this.table}.*`]
+    let from   : string   = `FROM ${this.table} `
+    let where  : string[] = []
+    let params : any[]    = []
 
     const {
       sql,
@@ -76,31 +75,69 @@ export class Model<T extends TSchema> extends Collection {
     params.push(...args)
     where.push(sql)
 
-    for (const field of Object.keys(joins)) {
-      const ref = joins[field]
-      if (ref.type != "id") continue
+    async function processJoins(
+      fields   : Record<string, Field>,
+      table    : string,
+      filter   : Record<string, any>,
+      isNested : boolean = false
+    ) {
+      const result: string[] = []
 
-      const model = ref.extra as Model<never>
-      await model.ensure()
+      for (const field of Object.keys(fields)) {
+        if (fields[field].type != "id") continue
 
-      select += model.toJSON_OBJECT() + ` as ${field} `
-      from   += `INNER JOIN ${model.table} ON ${model.table}.id = ${this.table}.${field} `
+        const model = fields[field].extra as Model<never> // TODO change the "extra" field to it's own property
+        await model.ensure()
 
-      const subFilter = buildWhere(model.fields, filter[field], model.table)
-      if (subFilter.sql.length)  where.push(subFilter.sql)
-      if (subFilter.args.length) params.push(...subFilter.args)
+        const {
+          sql,
+          args,
+          joins
+        } = buildWhere(model.fields, filter[field], model.table)
+
+        from += `INNER JOIN ${model.table} ON ${model.table}.id = ${table}.${field} `
+
+        if (sql.length)  where.push(sql)
+        if (args.length) params.push(...args)
+
+        // handle nested properties
+        const nested : string[] = []
+        if (!isEmpty(joins)) {
+          const prop = await processJoins(
+            joins,
+            model.table,
+            filter[field],
+            true
+          )
+          nested.push(...prop)
+        }
+
+        if (isNested) result.push(...[
+            `'${field}'`,// the field name
+            model.toJSON_OBJECT({ nested }) // the field value as json
+          ])
+        else select.push(
+          model.toJSON_OBJECT({ nested }) + ` as '${field}' `
+        )
+      }
+
+      return result
     }
+
+    await processJoins(joins, this.table, filter)
 
     where = where.filter(q => q)
 
     return this.sql(
-      select + from + (where.length ? `WHERE ${where.join(" AND ")}` : ''),
+      select.join(", ") +
+      from +
+      (where.length ? `WHERE ${where.join(" AND ")}` : ''),
       params
     )
   }
 
   async sql(
-    query : string,
+    query: string,
     params: Array<any> = []
   ): Promise<Array<Static<T>>> {
     await this.ensure()
@@ -130,8 +167,8 @@ export class Model<T extends TSchema> extends Collection {
   }
 
   async update(
-    id    : any,
-    model : Partial<Static<T>>
+    id: any,
+    model: Partial<Static<T>>
   ): Promise<Static<T>> {
     this.validate(model, true)
     const result = await super.update(id, model)

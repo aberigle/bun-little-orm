@@ -179,32 +179,62 @@ describe('typebox', () => {
       expect(search.length).toBe(1)
     })
 
-    it("supports refs", async () => {
+
+    describe("relations", () => {
       const OneSchema = Type.Object({
-        id: Type.Number(),
+        id   : Type.Number(),
         date : Type.Date(),
-        test: Type.String()
+        test : Type.String()
       }, { $id: "One" })
       const One = new Model(reusableDB, <string>OneSchema.$id, OneSchema)
 
       const TwoSchema = Type.Object({
-        two: Type.String(),
-        one: Type.Union([Type.Number(), OneSchema])
+        id    : Type.Number(),
+        field : Type.String(),
+        one   : Type.Union([Type.Number(), OneSchema])
       }, { $id: "Two" })
       const Two = new Model(reusableDB, <string>TwoSchema.$id, TwoSchema)
 
-      const oneInserted = await One.insert({ test: "references", date : new Date() })
-      const twoInserted = await Two.insert({ two: "adios", one: oneInserted })
+      const ThreeSchema = Type.Object({
+        id    : Type.Number(),
+        field : Type.String(),
+        two   : Type.Union([Type.Number(), TwoSchema])
+      }, { $id: "Three" })
+      const Three = new Model(reusableDB, <string>ThreeSchema.$id, ThreeSchema)
 
-      expect(twoInserted.one).toEqual(oneInserted.id)
+      it("creates relations", async () => {
+        const oneInserted = await One.insert({ test: "references", date : new Date("2025-02-01") })
+        const twoInserted = await Two.insert({ field: "adios",     one: oneInserted })
 
-      const [result] = await Two.findAndJoin({ "one": { id: 1 } })
+        expect(twoInserted.one).toEqual(oneInserted.id)
 
-      expect(result.one).toBeObject()
-      const one = result.one as Static<typeof OneSchema>
+      })
 
-      expect(one.date).toEqual(oneInserted.date)
-      expect(one.id).toBe(oneInserted.id)
+      it("filters nested relations recursively", async () => {
+        const [result] = await Two.findAndJoin({ "one": { id: 1 } })
+
+        expect(result.one).toBeObject()
+        const oneResult = result.one as Static<typeof OneSchema>
+
+        expect(oneResult.date).toEqual(new Date("2025-02-01"))
+        expect(oneResult.id).toBe(1)
+
+        const threeInserted = await Three.insert({ field: "three", two: result })
+        expect(threeInserted.field).toBe("three")
+
+        const [three] = await Three.findAndJoin({ two: { one: { id: 1 } } })
+        expect(three.field).toBe("three")
+
+        const two = three.two as Static<typeof TwoSchema>
+        expect("field" in two).toBe(true)
+
+        const one = two.one as Static<typeof OneSchema>
+        expect("date" in one).toBe(true)
+        expect(one.id).toBe(1)
+        expect(one.date).toEqual(new Date("2025-02-01"))
+
+      })
+
     })
 
 

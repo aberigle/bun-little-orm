@@ -22,18 +22,23 @@ export default class Collection {
     this.fields = {}
   }
 
-  toJSON_OBJECT(
-    alias: string = this.table
-  ) {
+  toJSON_OBJECT({
+    alias  = this.table,
+    nested = []
+  }: { alias?: string, nested?: string[] } = {}) {
     let fields: string[] = [`'id', ${alias}.id`]
 
     for (let [
-      name,
-      field
-    ] of Object.entries(this.fields)) {
+        name,
+        field
+      ] of Object.entries(this.fields)
+      .filter(([name]) => name !== "id")
+    ) {
       const fieldName = getFieldName(name, field)
       fields.push(`'${fieldName}',${alias}.'${fieldName}'`)
     }
+
+    if (nested?.length) fields.push(...nested)
 
     return `JSON_OBJECT(${fields.join(",")})`
   }
@@ -73,10 +78,10 @@ export default class Collection {
 
   transform(item) {
     return Object.entries(this.fields)
-      .reduce((result, [name, field]) => {
-        result[name] = field.parse(result[getFieldName(name, field)])
-        return result
-      }, item)
+    .reduce((result, [name, field]) => {
+      result[name] = field.parse(result[getFieldName(name, field)])
+      return result
+    }, item)
   }
 
   async insert(
@@ -172,13 +177,12 @@ export default class Collection {
 
     if (isEmpty(missing)) return { ...this.fields, ...fields }
 
-    let result
     // the table doesn't exist yet
     if (isEmpty(this.fields))
       return this.fields = await this.create(fields)
 
     // the table exists but is missing some field
-    result = await this.alter(missing)
+    await this.alter(missing)
     return this.fields = { ...this.fields, ...missing }
   }
 
@@ -191,7 +195,7 @@ export default class Collection {
       .map(([name, field]) => getFieldDefinition(name, field)).join(",")
     query += ")"
 
-    const result = await this.run(query)
+    await this.run(query)
 
     return { ...fields, [ID_FIELD] : new Field("id")}
   }
