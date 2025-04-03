@@ -14,11 +14,16 @@ export default class Collection {
   fields: Record<string, Field>
 
   constructor(
-    db: any,
-    name: string
+    db   : any,
+    name : string
   ) {
-    this.db = db
+    this.db    = db
     this.table = name
+    this.fields = {}
+  }
+
+  setDb(db) {
+    this.db     = db
     this.fields = {}
   }
 
@@ -46,6 +51,8 @@ export default class Collection {
   async run(
     query: string
   ) {
+    if (!this.db) return {}
+
     if (this.db.query) return this.db.query(query).run()
 
     let result = await this.db.execute(query)

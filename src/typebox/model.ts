@@ -1,7 +1,7 @@
 import { Collection, Field } from "@/core";
 import { buildWhere } from "@/core/queries/build-where";
 import { isEmpty } from "@/utils/objects";
-import { Static, TSchema, Type } from "@sinclair/typebox";
+import { Static, TSchema, Type, Unknown } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { parseSchema } from "./transform/schema";
 import { ValidationException } from "./validation-exception";
@@ -10,20 +10,25 @@ const cache: Record<string, Model<TSchema>> = {}
 const schemas: TSchema[] = []
 export class Model<T extends TSchema> extends Collection {
 
-  static reset() {
-    for (const model of Object.values(cache)) model.fields = {}
+  static reload(db?) {
+    for (const model of Object.values(cache)) {
+      model.fields = {}
+      if (db) model.setDb(db)
+    }
   }
 
   constructor(
-    db: any,
-    name: string,
-    public schema: T
+    public schema: T,
+    { db, name }: { db?: any, name?: string } = {}
   ) {
-    super(db, name)
+    if (schema.$id === undefined) {
+      if (name == undefined) throw new Error(`name or $id are mandatory`)
+      schema.$id = name
+    }
 
-    if (!schema.$id && name) schema.$id = name
+    super(db, schema.$id)
 
-    cache[name] = this
+    cache[schema.$id] = this
     schemas.push(this.schema)
   }
 

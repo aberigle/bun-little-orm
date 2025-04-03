@@ -2,6 +2,6 @@
 export function isEmpty(
   object : any
 ) : boolean {
-  for (const key in object) return false
+  for (const _ in object) return false
   return true
 }

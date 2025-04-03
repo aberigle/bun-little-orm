@@ -48,7 +48,7 @@ describe('typebox properties',() => {
     })
 
     it("Type.Union for relations", () => {
-      const ref   = fromTypebox({}, Type.Object({ test: Type.String() }, { $id: "RefTest" }))
+      const ref   = fromTypebox(Type.Object({ test: Type.String() }, { $id: "RefTest" }))
       const field = parseProperty(ModelReference(ref), [ref])
 
       expect(field.type).toBe("id")
