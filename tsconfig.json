@@ -36,5 +36,9 @@
     "./node_modules",
     "./node_modules/*",
     "./node_modules/@types/node/index.d.ts",
+    "**/__test__/**",
+    "*.test.ts",
+    "dist",
+    "build.ts"
   ]
 }

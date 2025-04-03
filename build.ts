@@ -5,7 +5,7 @@ build({
   outdir : "./dist/",
   minify : false,
   target : "node",
-  external :[
+  external: [
     "@sinclair/typebox"
   ]
 })
