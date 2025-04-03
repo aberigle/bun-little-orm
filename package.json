@@ -1,8 +1,9 @@
 {
-  "name": "bun-little-orm",
+  "name": "sqlitype",
   "version": "0.0.1",
   "author": "@aberigle",
   "main": "dist/index.js",
+  "license" : "MIT",
   "scripts": {
     "build:types": "tsc --project tsconfig.dts.json",
     "build": "bun test && bun run build:types && bun build.ts",
