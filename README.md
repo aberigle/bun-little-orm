@@ -1,209 +1,157 @@
-# bun-little-orm
-> English below
+# sqlitype
 
-Un mini ORM para bun:sqlite con soporte para lo típico:
-* Crear la tabla
-* Insertar
-* Buscar
-* Actualizar
+[English](./README.en.md)
 
-Para instanciarlo es necesario un instancia de `Database` y el nombre de la colección.
+## Introducción
 
-````js
-import { Database } from 'bun:sqlite';
+sqlitype es un mini ORM para trabajar con bases de datos SQLite, que combina:
 
-let col = new Collection(new Database("mydb.sqlite"), "test")
-````
+- **Validación de tipos en tiempo de compilación** (TypeScript)
+- **Validación de datos en tiempo de ejecución** (TypeBox)
+- **Operaciones CRUD type-safe**
+- **Soporte para relaciones entre modelos**
 
-O con @libsql/client
+## Conceptos Clave
 
-````js
-import { createClient } from "@libsql/client";
+### 🤔 Definir Modelos
 
-let col = new Collection(createClient({
-  url : "file::mydb.sqlite"
-}), "test")
-````
+Los modelos representan tus tablas de base de datos. Cada modelo necesita:
 
-Luego es tan fácil como hacer
+- Un esquema TypeBox que define la estructura
+- Configuración básica (nombre de tabla y conexión a DB)
 
-````js
-let result = await col.insert({ hello : "world"})
-console.log(result.id) // el id de la instancia en la BD
-````
-
-Se pueden ir añadiendo campos adicionales, y se encargará de actualizar la tabla en consecuencia.
-
-````js
-let result = await col.insert({ hello : "field", count : 1})
-````
-
-Los tipos soportados de momento son los siguientes.
-
-````ts
-enum TypeMap {
-  "number"  = "REAL",
-  "string"  = "TEXT",
-  "boolean" = "INTEGER",
-  "date"    = "INTEGER",
-  "object"  = "TEXT",
-  "array"   = "TEXT"
-}
-````
-
-Soporta búsquedas sencillas y con wilcards, también búsquedas por id.
-````js
-let result1 = await col.find({ count : 1 })
-let result2 = await col.find({  hello : "%eld"})
-let result3 = await col.findById(1) // devuelve solo un element o null
-````
-
-También se pueden hacer actualizaciones por id
-````js
-await col.update(1, { hello : "updates" })
-````
-
-## Soporte para TypeBox
-Con TypeBox, puedes definir esquemas de validación para tus modelos y aprovechar la inferencia de tipos en TypeScript.
-
-### Definir un esquema con TypeBox
 ```typescript
-import { Type, Static } from '@sinclair/typebox';
-import { fromTypebox } from 'bun-little-orm';
+import { Type } from '@sinclair/typebox';
+import sqlitype from 'sqlitype';
+import Database from 'bun:sqlite';
 
-// Define el esquema
-const UserSchema = Type.Object({
-  id: Type.Optional(Type.Number()),
-  name: Type.String(),
-  email: Type.String()
-}, {
-  $id : "User"
+// Definición del esquema
+const User = Type.Object({
+  id    : Type.Number(),
+  name  : Type.String(),
+  email : Type.String(),
+  age   : Type.Optional(Type.Number())
+},
+{ 
+  $id : "Users" // nombre de la tabla
 });
 
 // Inferir el tipo TypeScript
-type User = Static<typeof UserSchema>;
+type User = Static<typeof User>;
 
-// Crear la colección con el esquema
-let Users = fromTypebox(new Database("mydb.sqlite"), UserSchema);
+// Creación del modelo
+const Users = new sqlitype.Model(User);
 
-// Insertar un nuevo usuario
-let newUser = await Users.insert({
-  name: "Alice",
-  email: "alice@example.com",
-  age: 25
-});
-
+sqlitype.useConnection(new Database('mydb.sqlite'));
 ```
-En caso de error de validación, los errores tienen el [formato de TypeBox](https://github.com/sinclairzx81/typebox?tab=readme-ov-file#values-errors).
 
-De momento no se puede borrar. Pero para ir tirando yo creo que está bien.
+sqlitype se encarga de crear o actualizar la tabla para mantenerla sincronizada con el esquema. (dentro de lo que SQLite permite)
 
-Espero que sea de utilidad. Para cualquer sugerencia me comentáis.
+### 📀 Insertar datos
 
+Se utiliza la validación de TypeBox en tiempo de ejecución antes de insertar nuevos datos. En tiempo de compilación utilizará la de Typescript 😍
 
-## English
-
-A mini ORM for bun:sqlite with support for the basics:
-* Create table
-* Insert
-* Search
-* Update
-
-To instantiate it, you need an instance of Database and the name of the collection.
-
-````js
-import { Database } from 'bun:sqlite';
-
-let col = new Collection(new Database("mydb.sqlite"), "test");
-````
-
-Or with @libsql/client
-
-````js
-import { createClient } from "@libsql/client";
-
-let col = new Collection(createClient({
-  url : "file::mydb.sqlite"
-}), "test")
-````
-
-
-Then it's as easy as doing:
-
-````js
-let result = await col.insert({ hello : "world" });
-console.log(result.id); // the id of the instance in the database
-````
-
-You can add additional fields, and it will take care of updating the table accordingly.
-
-````js
-let result = await col.insert({ hello : "field", count : 1 });
-````
-
-The supported types are
-
-````ts
-enum TypeMap {
-  "number"  = "REAL",
-  "string"  = "TEXT",
-  "boolean" = "INTEGER",
-  "date"    = "INTEGER",
-  "object"  = "TEXT",
-  "array"   = "TEXT"
-}
-````
-
-It supports simple and wildcard searches, as well as searches by id.
-
-````js
-let result1 = await col.find({ count : 1 });
-let result2 = await col.find({ hello : "%eld" });
-let result3 = await col.findById(1); // returns only one element or null
-````
-
-Updates can also be made by id.
-
-````js
-col.update(1, { hello : "updates" });
-````
-
-## TypeBox Support
-With TypeBox, you can define validation schemas for your models and leverage TypeScript type inference.
-
-### Define a Schema with TypeBox
+Para los errores de validación se utiliza el [formato de TypeBox](https://github.com/sinclairzx81/typebox?tab=readme-ov-file#values-errors).
 
 ```typescript
-import { Type, Static } from '@sinclair/typebox';
-import { fromTypebox } from 'bun-little-orm';
-
-// Define the schema
-const UserSchema = Type.Object({
-  id: Type.Optional(Type.Number()),
-  name: Type.String(),
-  email: Type.String()
-}, {
-  $id : "User"
+const newUser = await Users.insert({
+  name: "María García",
+  email: "maria@ejemplo.com",
+  age: 28
 });
 
-// Infer the TypeScript type
-type User = Static<typeof UserSchema>;
+console.log(newUser.id); // ID auto-generado
+```
 
-// Create the collection with the schema
-let Users = fromTypebox(new Database("mydb.sqlite"), UserSchema);
+### 🔍 Buscar datos
 
-// Insert a new user
-let newUser = await Users.insert({
-  name: "Alice",
-  email: "alice@example.com",
-  age: 25
+Métodos disponibles:
+
+- `find({...})` - Con filtros
+- `findById(id)` - Por ID único
+
+```typescript
+// Todos los usuarios
+const allUsers = await Users.find();
+
+// Usuarios de 28 años
+const adults = await Users.find({
+  age: 28
+});
+
+const antonios = await Users.find({
+  name : "%Antonio%"
+})
+
+// Usuario específico
+const user = await Users.findById(1);
+```
+
+### 📝 Actualizar datos
+```typescript
+const updated = await Users.update(1, {
+  age: 29  // Nuevo valor
 });
 ```
 
-In case of a validation error, the errors follow the [TypeBox error format](https://github.com/sinclairzx81/typebox?tab=readme-ov-file#values-errors).
+### 🫂 Relaciones entre modelos
 
+Se pueden definir relaciones con otro modelo utilizando `ModelReference`
 
+```typescript
+// Modelo Autor
+const Book = Type.Object({
+  id: Type.Number(),
+  name: Type.String()
+}, { $id : "Author" });
+const Authors = new sqlitype.Model(Author);
 
-For now you cannot delete. But for getting started, I think it's fine.
+// Modelo Libro (relacionado con Autor)
+const Book = Type.Object({
+  id: Type.Number(),
+  title: Type.String(),
+  author: sqlitype.ModelReference(Authors)  // ⬅️ Relación
+}, { $id : "Book" })
 
-I hope this is helpful! Let me know if you have any other questions.
+const Books = new sqlitype.Model(Book);
+
+// Uso
+const author = await Authors.insert({ name: "Gabriel García Márquez" });
+const book = await Books.insert({
+  title: "Cien años de soledad",
+  author: author  // Asignamos la relación
+});
+```
+Luego se podrá filtrar por ese campo haciendo `findAndJoin` de varias maneras
+
+```typescript
+const [bookWithAuthor] = await Books.findAndJoin({
+  id : 1,
+  author : {} // esto populará el autor del libro
+})
+
+const booksByAuthor = await Books.findAndJoin({
+  "author": {
+    name : "%Gabriel%"
+  } // esto filtrará todos los libros de un autor
+});
+
+const books = await Books.findAndJoin({
+  title : "%soledad%",
+  author : {
+    name : "%Gabriel%"
+  }
+}); // todos los libros con soledad en el titulo escritos por alguien que se llame Gabriel 😳
+```
+
+## Tipos de Datos Soportados
+
+| TypeBox	| SQLite|	Descripción |
+|-|-|-|
+|Type.String()|	TEXT|	Strings en general
+|Type.Number()|	REAL|	Números
+|Type.Boolean()|	INTEGER	| flags, booleanos..
+|Type.Date()	|INTEGER	|fechas (almacenadas como timestamp)
+|Type.Object()|	TEXT	|datos JSON (almacenados como texto)
+|Type.Any()|TEXT|datos JSON (almacenados como texto)
+|Type.Array()|	TEXT	|listas (almacenadas como JSON)
