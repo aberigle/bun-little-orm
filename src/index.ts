@@ -11,3 +11,5 @@ export const sqlitype = {
   },
   useClient: (client) => Model.reload(client)
 }
+
+export default sqlitype
