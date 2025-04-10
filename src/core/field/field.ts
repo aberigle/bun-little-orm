@@ -18,8 +18,12 @@ export default class Field {
     switch(this.type) {
       case 'date'    : return new Date(value)
       case 'boolean' : return value === 1
-      case 'array'   :
-      case 'object'  : return JSON.parse(value)
+      case 'array'   : return value !== null
+        ? JSON.parse(value)
+        : []
+      case 'object'  : return value !== null
+        ? JSON.parse(value)
+        : {}
       case 'id'      :
         if (!this.extra) return value
 

@@ -64,12 +64,17 @@ describe('field', () => {
       let field = new Field("object")
       let value = { hola: "mundo" }
       expect(field.parse(JSON.stringify(value))).toEqual(value)
+
+      expect(field.parse(null)).toEqual({})
     })
 
     it("arrays", () => {
       let field = new Field("array")
       let value = ["list"]
       expect(field.parse(JSON.stringify(value))).toEqual(value)
+
+      expect(field.parse(null)).toEqual([])
+
     })
   })
 
