@@ -91,7 +91,7 @@ export class Model<T extends TSchema> extends Collection {
       for (const field of Object.keys(fields)) {
         if (fields[field].type != "id") continue
 
-        const model = fields[field].extra as Model<never> // TODO change the "extra" field to it's own property
+        const model = fields[field].ref as Model<never>
         await model.ensure()
 
         const {

@@ -147,12 +147,18 @@ export function testModel(reusableDB) {
   })
 
   it('supports booleans', async () => {
-    const schema = Type.Object({ success: Type.Boolean(), id: Type.Number() })
+    const schema = Type.Object({
+      optional : Type.Optional(Type.Boolean()),
+      success: Type.Boolean(),
+      id: Type.Number()
+    })
     const model = new Model(schema, { name: "test", db: reusableDB })
 
     const inserted = await model.insert({ success: true })
+    console.log(inserted)
     expect(() => Value.Assert(schema, inserted)).not.toThrow()
     expect(inserted.success).toEqual(true)
+    expect(inserted.optional).toBeUndefined()
 
     const found = await model.findById(inserted.id)
     expect(() => Value.Assert(schema, inserted)).not.toThrow()

@@ -22,13 +22,14 @@ function parseUnionProperty(
 
 export function parseObjectProperty(
   field      : TObject,
-  references : Model<TSchema>[] = []
+  references : Model<TSchema>[] = [],
+  options: { required: boolean }
 ): Field {
-  if (!field.$id?.includes("ref")) return new Field("object")
+  if (!field.$id?.includes("ref")) return new Field("object", options.required)
 
   const name = field.$id.split("@").pop()
   const model = references.find(({ schema: { $id } }) => $id == name)
-  if (model) return new Field("id", model)
+  if (model) return new Field("id", options.required).reference(model)
 
   throw new Error(`${model} model not found!`)
 }
@@ -37,19 +38,19 @@ export function parseProperty(
   field : TSchema,
   references: Model<TSchema>[] = []
 ) : Field {
-  // TODO
+
   let options = {
-    notNull: true
+    required: !(Symbol.for("TypeBox.Optional") in field)
   }
 
   switch (field.type) {
-    case 'string'  : return new Field("string")
+    case 'string': return new Field("string", options.required)
     case 'number'  :
-    case 'integer' : return new Field("number")
-    case 'boolean' : return new Field("boolean")
-    case 'Date'    : return new Field("date")
-    case 'object'  : return parseObjectProperty(<TObject>field, references)
-    case 'array'   : return new Field("array")
+    case 'integer' : return new Field("number", options.required)
+    case 'boolean' : return new Field("boolean", options.required)
+    case 'Date'    : return new Field("date", options.required)
+    case 'object'  : return parseObjectProperty(<TObject>field, references, options)
+    case 'array'   : return new Field("array", options.required)
   }
 
   const key    = Symbol.for("TypeBox.Kind")
@@ -62,7 +63,7 @@ export function parseProperty(
 
     //   return new Field("number", true)
     // }
-    case 'Any'   : return new Field("object")
+    case 'Any'   : return new Field("object", options.required)
     case 'Union' : return parseUnionProperty(<TUnion>field, references)
     // case 'Union' :
     //   let ref = field.anyOf.find((item: TSchema) => key in item && item[key] === 'Ref')

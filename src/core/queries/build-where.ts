@@ -18,8 +18,7 @@ export function buildWhere(
 
   for (const name of keys) if (fields[name]) {
     const field = fields[name]
-    // TODO mejorar esto (cambiar lo de extra)
-    if (field.type === "id" && field.extra?.table) {
+    if (field.type === "id" && field.ref?.table) {
       joins[name] = field
       continue
     }
@@ -35,7 +34,7 @@ export function buildWhere(
   }
 
   return {
-    sql : `${conditions.join(" AND ")}`,
+    sql  : `${conditions.join(" AND ")}`,
     args : values,
     joins
   }

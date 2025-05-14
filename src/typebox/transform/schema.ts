@@ -14,8 +14,6 @@ export function parseSchema(
     const property = object.properties[key]
     const field = parseProperty(property, references)
 
-    if (field.type) field.required = !!object.required?.includes(key)
-
     // if ("default" in property) field.default = property.default
 
     // if (getters && getters[key]) field.get = getters[key]
