@@ -168,6 +168,8 @@ export class Model<T extends TSchema> extends Collection {
 
   async findById(query: any): Promise<Static<T>> {
     const result = await super.findById(query)
+    if (!result) return undefined
+
     return this.cast(result)
   }
 

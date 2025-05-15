@@ -71,6 +71,11 @@ export function testModel(reusableDB) {
 
     expect(() => Value.Assert(schema, result)).not.toThrow()
     expect(result.id).toBe(2)
+
+
+    result = await model.findById(657)
+    expect(result).toBeUndefined()
+
   })
 
   it('can search strings with wildcards', async () => {

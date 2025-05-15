@@ -33,6 +33,9 @@ describe('collection', () => {
     it('can search by id', async () => {
       let result = await col.findById(2)
       expect(result.field).toBe("success")
+
+      result = await col.findById(36)
+      expect(result).toBeUndefined()
     })
 
     it('can search strings with wildcards', async () => {
