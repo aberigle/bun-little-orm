@@ -153,14 +153,13 @@ export function testModel(reusableDB) {
 
   it('supports booleans', async () => {
     const schema = Type.Object({
-      optional : Type.Optional(Type.Boolean()),
+      optional: Type.Optional(Type.Boolean()),
       success: Type.Boolean(),
       id: Type.Number()
     })
     const model = new Model(schema, { name: "test", db: reusableDB })
 
     const inserted = await model.insert({ success: true })
-    console.log(inserted)
     expect(() => Value.Assert(schema, inserted)).not.toThrow()
     expect(inserted.success).toEqual(true)
     expect(inserted.optional).toBeUndefined()
@@ -232,6 +231,20 @@ export function testModel(reusableDB) {
       expect(one.id).toBe(1)
       expect(one.date).toEqual(new Date("2025-02-01"))
 
+    })
+
+    it("supports relation updates", async () => {
+      const date = new Date()
+      const [two] = await Two.findAndJoin({ "one": { id: 1 } })
+      const oneInserted = await One.insert({ test: "references", date })
+
+      await Two.update(two.id, {
+        one: oneInserted
+      })
+
+      const [twoUpdated] = await Two.findAndJoin({ "one": { id: oneInserted.id } })
+      expect(twoUpdated.one.id).toBe(oneInserted.id as number)
+      expect(twoUpdated.one.date).toEqual(date)
     })
 
   })

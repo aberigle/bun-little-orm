@@ -91,6 +91,23 @@ export default class Collection {
     }, item)
   }
 
+  async find(search = {}) {
+    let fields = await this.ensure({})
+    if (isEmpty(fields)) return []
+
+    let query = `SELECT * FROM ${this.table} `
+
+    const {
+      sql,
+      args
+    } = buildWhere(fields, search)
+
+    if (sql.length) query += `WHERE ${sql}`
+
+    let result = await this.execute(query, args)
+    return result.map(item => this.transform(item))
+  }
+
   async insert(
     model: any
   ) {
@@ -102,7 +119,7 @@ export default class Collection {
     for (let [
       name,
       field
-    ] of Object.entries(fields)) if (clone[name]) {
+    ] of Object.entries(fields)) if (clone[name] !== undefined) {
       values.push(field.cast(clone[name]))
       names.push("'" + getFieldName(name, field) + "'")
     }
@@ -125,35 +142,19 @@ export default class Collection {
     return result[0]
   }
 
-  async find(search = {}) {
-    let fields = await this.ensure({})
-    if (isEmpty(fields)) return []
-
-    let query = `SELECT * FROM ${this.table} `
-
-    const {
-      sql,
-      args
-    } = buildWhere(fields, search)
-
-    if (sql.length) query += `WHERE ${sql}`
-
-    let result = await this.execute(query, args)
-    return result.map(item => this.transform(item))
-  }
-
   async update(
     id: any,
     model = {}
   ) {
     let clone = Object.assign({}, model)
-    let fields = deduceFields(clone)
-
-    await this.ensure(fields)
+    let fields = await this.ensure(deduceFields(clone))
 
     const values: Array<any> = []
     const names: string[] = []
-    for (let [name, field] of Object.entries(fields)) {
+    for (let [
+      name,
+      field
+    ] of Object.entries(fields)) if (clone[name] !== undefined) {
       values.push(field.cast(clone[name]))
       names.push("'" + getFieldName(name, field) + "'")
     }
