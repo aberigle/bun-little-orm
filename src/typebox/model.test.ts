@@ -189,7 +189,8 @@ export function testModel(reusableDB) {
     const TwoSchema = Type.Object({
       id: Type.Number(),
       field: Type.String(),
-      one: ModelReference(One)
+      one: ModelReference(One),
+      another : Type.Optional(ModelReference(One))
     }, { $id: "Two" })
     const Two = new Model(TwoSchema, { db: reusableDB })
 
@@ -201,17 +202,20 @@ export function testModel(reusableDB) {
     const Three = new Model(ThreeSchema, { db: reusableDB })
 
     it("creates relations", async () => {
-      const oneInserted = await One.insert({ test: "references", date: new Date("2025-02-01") })
-      const twoInserted = await Two.insert({ field: "adios", one: oneInserted })
+      const oneInserted     = await One.insert({ test: "references", date: new Date("2025-02-01") })
+      const anotherInserted = await One.insert({ test: "references2", date: new Date("2025-02-02") })
+      const twoInserted     = await Two.insert({ field: "adios", one: oneInserted, another : anotherInserted })
 
       expect(twoInserted.one.id).toEqual(oneInserted.id)
+      expect(twoInserted.another?.id).toEqual(anotherInserted.id)
 
     })
 
     it("filters nested relations recursively", async () => {
-      const [result] = await Two.findAndJoin({ "one": { id: 1 } })
+      const [result] = await Two.findAndJoin({ "one": { id: 1 }, another: { } })
 
       expect(result.one).toBeObject()
+      expect(result.another).toBeObject()
       const oneResult = result.one as Static<typeof OneSchema>
 
       expect(oneResult.date).toEqual(new Date("2025-02-01"))

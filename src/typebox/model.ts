@@ -100,7 +100,7 @@ export class Model<T extends TSchema> extends Collection {
           joins
         } = buildWhere(model.fields, filter[field], model.table)
 
-        from += `INNER JOIN ${model.table} ON ${model.table}.id = ${table}.${field} `
+        from += `INNER JOIN ${model.table} AS ${field} ON ${field}.id = ${table}.${field} `
 
         if (sql.length)  where.push(sql)
         if (args.length) params.push(...args)
