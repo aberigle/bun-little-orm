@@ -52,6 +52,11 @@ describe('typebox properties',() => {
       expect(field.type).toBe("date")
     })
 
+    it("Type.Union for literals", () => {
+      const field = parseProperty(Type.Union([Type.Literal("one"), Type.Literal("two")]))
+      expect(field.type).toBe("string")
+    })
+
     it("Type.Union for relations", () => {
       const ref   = fromTypebox(Type.Object({ test: Type.String() }, { $id: "RefTest" }))
       const field = parseProperty(ModelReference(ref), [ref])

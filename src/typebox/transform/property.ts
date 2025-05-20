@@ -2,20 +2,25 @@ import { Field } from "@/core";
 import { TObject, TSchema, TUnion } from "@sinclair/typebox";
 import { Model } from "../model";
 
+const Kind = Symbol.for("TypeBox.Kind")
+const Optional = Symbol.for("TypeBox.Optional")
+
 function parseUnionProperty(
   field : TUnion,
   references : Model<TSchema>[] = []
 ) : Field {
 
+  if (field.anyOf.length < 1) throw new Error("Empty Union is not supported")
+
   // add support for dates as string or number
   const date: TSchema | undefined = field.anyOf.find(({ type }) => type == "Date")
   if (date !== undefined) return parseProperty(date)
 
-  // const schema = field.anyOf.find(({ $id }) => $id)
-  // if (schema && field.anyOf.length == 2) {
-  //   const model = references.find(({ schema: { $id } }) => $id == schema.$id)
-  //   return new Field("id", model)
-  // }
+  // look for anything other than a literal
+  const notLiteral: TSchema | undefined = field.anyOf
+  .find((unionField) => Kind in unionField && unionField[Kind] !== "Literal")
+  // all elements are Literal
+  if (!notLiteral) return parseProperty(field.anyOf[0])
 
   throw new Error("Type not supported: Union")
 }
@@ -40,7 +45,7 @@ export function parseProperty(
 ) : Field {
 
   let options = {
-    required: !(Symbol.for("TypeBox.Optional") in field)
+    required: !(Optional in field)
   }
 
   switch (field.type) {
@@ -53,26 +58,11 @@ export function parseProperty(
     case 'array'   : return new Field("array", options.required)
   }
 
-  const key    = Symbol.for("TypeBox.Kind")
-  const symbol = key in field? field[key] : ''
+  const symbol = Kind in field ? field[Kind] : ''
 
   switch(symbol) {
-    // case 'Ref'   : {
-    //   const model = references.find(ref => ref.schema.$id == field.$ref)
-    //   if (!model) throw new Error("Reference for non existing model: " + field.$ref)
-
-    //   return new Field("number", true)
-    // }
     case 'Any'   : return new Field("object", options.required)
     case 'Union' : return parseUnionProperty(<TUnion>field, references)
-    // case 'Union' :
-    //   let ref = field.anyOf.find((item: TSchema) => key in item && item[key] === 'Ref')
-    //   if (ref) return parseProperty(ref)
-    //   return {
-    //     ...def,
-    //     type : String,
-    //     enum : field.anyOf.map(value => value.const)
-    //   }
   }
 
   throw new Error("Type not supported: " + (field.type || symbol))
