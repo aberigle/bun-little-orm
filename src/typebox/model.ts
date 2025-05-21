@@ -91,6 +91,8 @@ export class Model<T extends TSchema> extends Collection {
       for (const field of Object.keys(fields)) {
         if (fields[field].type != "id") continue
 
+        const isRequired = fields[field].required
+
         const model = fields[field].ref as Model<never>
         await model.ensure()
 
@@ -100,7 +102,7 @@ export class Model<T extends TSchema> extends Collection {
           joins
         } = buildWhere(model.fields, filter[field], model.table)
 
-        from += `INNER JOIN ${model.table} AS ${field} ON ${field}.id = ${table}.${field} `
+        from += `${isRequired ? 'INNER' : 'LEFT'} JOIN ${model.table} AS ${field} ON ${field}.id = ${table}.${field} `
 
         if (sql.length)  where.push(sql)
         if (args.length) params.push(...args)
@@ -119,10 +121,10 @@ export class Model<T extends TSchema> extends Collection {
 
         if (isNested) result.push(...[
             `'${field}'`,// the field name
-            model.toJSON_OBJECT({ nested }) // the field value as json
+            model.toJSON_OBJECT({ nested, alias : field }) // the field value as json
           ])
         else select.push(
-          model.toJSON_OBJECT({ nested }) + ` as '${field}' `
+          model.toJSON_OBJECT({ nested, alias : field }) + ` as '${field}' `
         )
       }
 

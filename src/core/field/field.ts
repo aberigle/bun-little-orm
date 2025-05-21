@@ -31,14 +31,21 @@ export default class Field {
         ? JSON.parse(value)
         : {}
       case 'id'      :
+        // id reference in the same model
         if (!this.ref) return value
+        // we didnt populate the model
+        if (typeof value === "number") return { id: value }
 
-        const model = this.ref
-        if (typeof value === "string" && value.startsWith("{"))
-          value = JSON.parse(value)
-        return typeof value !== "number"
-          ? model.cast(model.transform(value))
-          : { id: value }
+        // we have an object to be casted
+        if (
+          typeof value === "string" &&
+          value.startsWith("{")
+        ) value = JSON.parse(value)
+
+        // left join without match
+        if (value.id === null) return undefined
+
+        return this.ref.cast(this.ref.transform(value))
 
       default: return value
     }
