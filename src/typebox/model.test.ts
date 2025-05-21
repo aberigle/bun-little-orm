@@ -4,15 +4,16 @@ import Database from 'bun:sqlite';
 import { describe, expect, it } from 'bun:test';
 import { Model } from './model';
 import { ModelReference } from './model-reference';
+import { Client } from '@libsql/client/.';
 
-const reusableDB = new Database()
+describe('typebox', () => describe("model (bun)", () => testModel(new Database())))
 
-describe('typebox', () => describe("model (bun)", () => testModel(reusableDB)))
-
-export function testModel(reusableDB) {
+export function testModel(
+  connection: Database | Client
+) {
   it('inserts in a new collection', async () => {
     const schema = Type.Object({ id: Type.Number(), test: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     await model.insert({ test: 1 })
 
@@ -22,7 +23,7 @@ export function testModel(reusableDB) {
 
   it('alters table with new fields', async () => {
     const schema = Type.Object({ test: Type.Number(), field: Type.String() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     await model.insert({ field: "success", test: 2 })
 
@@ -33,7 +34,7 @@ export function testModel(reusableDB) {
 
   it('validates data inserted', async () => {
     const schema = Type.Object({ test: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     // @ts-ignore
     expect(async () => await model.insert({ test: "hola" })).toThrowError("Validation error")
@@ -41,7 +42,7 @@ export function testModel(reusableDB) {
 
   it('retrieves the models', async () => {
     const schema = Type.Object({ test: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     const result = await model.find()
 
@@ -53,7 +54,7 @@ export function testModel(reusableDB) {
 
   it('can search', async () => {
     const schema = Type.Object({ test: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     let result = await model.find({ test: 1 })
 
@@ -65,7 +66,7 @@ export function testModel(reusableDB) {
 
   it('can search by id', async () => {
     const schema = Type.Object({ test: Type.Number(), id: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     let result = await model.findById(2)
 
@@ -80,7 +81,7 @@ export function testModel(reusableDB) {
 
   it('can search strings with wildcards', async () => {
     const schema = Type.Object({ test: Type.Number(), field: Type.String() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
     let result = await model.find({ field: "%ess" })
 
     expect(() => Value.Assert(Type.Array(schema), result)).not.toThrow()
@@ -91,7 +92,7 @@ export function testModel(reusableDB) {
 
   it('supports dates', async () => {
     const schema = Type.Object({ id: Type.Number(), test: Type.Number(), date: Type.Date() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     let date = new Date()
     let inserted = await model.insert({ date, test: 2 })
@@ -108,7 +109,7 @@ export function testModel(reusableDB) {
       id: Type.Number(),
       object: Type.Object({ hola: Type.String() })
     })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     let object = { hola: "mundo" }
     let inserted = await model.insert({ object })
@@ -125,7 +126,7 @@ export function testModel(reusableDB) {
       id: Type.Number(),
       list: Type.Array(Type.String())
     })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     let list = ["list", "two", "three"]
     let inserted = await model.insert({ list })
@@ -139,7 +140,7 @@ export function testModel(reusableDB) {
 
   it('supports updates', async () => {
     const schema = Type.Object({ test: Type.Number(), id: Type.Number() })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     const value = Date.now()
     const update = await model.update(3, { test: value })
@@ -157,7 +158,7 @@ export function testModel(reusableDB) {
       success: Type.Boolean(),
       id: Type.Number()
     })
-    const model = new Model(schema, { name: "test", db: reusableDB })
+    const model = new Model(schema, { name: "test", db: connection })
 
     const inserted = await model.insert({ success: true })
     expect(() => Value.Assert(schema, inserted)).not.toThrow()
@@ -184,7 +185,7 @@ export function testModel(reusableDB) {
       date: Type.Date(),
       test: Type.String()
     }, { $id: "One" })
-    const One = new Model(OneSchema, { db: reusableDB })
+    const One = new Model(OneSchema, { db: connection })
 
     const TwoSchema = Type.Object({
       id: Type.Number(),
@@ -192,14 +193,14 @@ export function testModel(reusableDB) {
       one: ModelReference(One),
       another : Type.Optional(ModelReference(One))
     }, { $id: "Two" })
-    const Two = new Model(TwoSchema, { db: reusableDB })
+    const Two = new Model(TwoSchema, { db: connection })
 
     const ThreeSchema = Type.Object({
       id: Type.Number(),
       field: Type.String(),
       two: ModelReference(Two)//Type.Union([Type.Number(), TwoSchema])
     }, { $id: "Three" })
-    const Three = new Model(ThreeSchema, { db: reusableDB })
+    const Three = new Model(ThreeSchema, { db: connection })
 
     it("creates relations", async () => {
       const oneInserted     = await One.insert({ test: "references", date: new Date("2025-02-01") })
